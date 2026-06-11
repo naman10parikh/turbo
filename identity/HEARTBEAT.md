@@ -1,23 +1,30 @@
-# {{AGENT_NAME}} — Heartbeat
+# turbo — Heartbeat
+
+> Cron-like cadence for the backend/runtime employee. turbo's heartbeat is the **deterministic RSI loop**
+> (`workflows/rsi.workflow.js`) — it keeps turbo current against a fast-moving 2026 ecosystem where
+> inversions move quarterly. Wired as a GitHub Actions `workflow_dispatch`/`schedule` (`rsi.yml`).
 
 ## Schedule
 
-| Check                  | Frequency                              | Action on Anomaly                      |
-| ---------------------- | -------------------------------------- | -------------------------------------- |
-| Scan for opportunities | Every 6 hours (Tier 1: GitHub Actions) | Log results to state.json              |
-| Health check           | Every heartbeat                        | If error: pause, alert orchestrator    |
-| Budget check           | Daily                                  | If low: request more via budgetRequest |
-| Performance review     | Daily                                  | If ROI < threshold: reduce scope       |
+| Check | Frequency | Action on anomaly |
+| --- | --- | --- |
+| **Version-drift** (`turbo check` — `npm view` vs `brain/TOOL-MATRIX.md` pins) | nightly (RSI loop) | flag drift / newly-EOL runtime (Node-20 class) / Hono security floor (<4.12.16) → propose a gated pin-bump diff |
+| **Eval pyramid** (`turbo eval` — L1 assertions + L2 behavior) | nightly + every CI run | if a CI-blocking task (G1/G3/G4/G5/G7/G13) goes red → block; git snap-back at component/repo |
+| **Acceptance test** (`turbo api` on the Petstore fixture) | every push/PR (`acceptance.yml`) | if `tsc --noEmit`/contract/audit fails → red-block the merge |
+| **Brain freshness** (`refresh-brain` — re-read TOOL-MATRIX pins) | nightly (RSI loop) | if an ecosystem-watch signal lands (new Hono CVE, Zod major, Bun RED→GREEN flip) → Claude-half drafts a brain update (when token set) |
 
-## Health Indicators
+## Health indicators
 
-- **Healthy**: Last scan < 12 hours ago, no errors in last 24h
-- **Warning**: Last scan > 12 hours ago OR 1+ errors in 24h
-- **Critical**: Last scan > 24 hours ago OR 3+ errors in 24h → auto-pause
+- **Healthy:** acceptance test green; no version drift past the security floor; eval L1+L2 green.
+- **Warning:** a pin is stale (non-security) OR an L3 trajectory task degraded.
+- **Critical:** the acceptance test is red OR Hono pin <4.12.16 (the middleware-CVE floor) OR a CI-blocking
+  golden task (data-bleed/SSE/PATCH) fails → the merge is blocked; snap back.
 
 ## Recovery
 
-1. Read last error from state.json
-2. Check LEARNINGS.md for known fixes
-3. If fixable: apply fix, resume
-4. If not: alert orchestrator, preserve state
+1. Read the failing `verify:` line + the relevant pitfall (`turbo explain <P-id>`).
+2. Check `memory/LEARNINGS.md` for a known fix.
+3. If fixable deterministically (a pin bump, a regenerated schema): propose the diff through the eval gate;
+   commit only if the acceptance test + no-regression gate passes.
+4. If it needs taste (a new inversion, a closed dispute): the Claude half drafts a `brain/` update through
+   the same gate (gated behind `CLAUDE_CODE_OAUTH_TOKEN`, D8).
