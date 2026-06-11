@@ -44,4 +44,5 @@ From `~/energy/audit/HARNESS-CHECKLIST-2026.md` (Backend/Runtime, line 261-265):
 - ecosystem-11-github-issues.md — real-world breakage from issues
 - ecosystem-12-tradeoff-matrix.md — competing tools honest matrix
 - ecosystem-13-agent-operator.md — what an AGENT needs (CLIs/APIs/MCPs)
+- ecosystem-14-verification-and-gap-closure.md — 2nd-pass: live version re-verify + 3 open gaps CLOSED (Vercel Node min, @hono/zod-openapi v1 breaks, framework perf) + 3 NET-NEW (neverthrow slowdown, Hono RPC issue ledger, verbatim Hono streaming API)
 - ecosystem-99-REPORT.md — final report + gaps

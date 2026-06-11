@@ -5,7 +5,7 @@ created: "2026-06-11"
 updated: "2026-06-11"
 tags: [pitfalls, gotchas, version-specific, detection, avoidance, hono, zod, bun, node, express]
 synthesist: SYNTHESIS / taste-node (CP123 Wave-R)
-sources: ["brain/research/raw/ecosystem-01,02,03,05,08,11,13.md", "brain/research/raw/field-01,06.md"]
+sources: ["brain/research/raw/ecosystem-01,02,03,05,08,11,13,14.md", "brain/research/raw/field-01,06.md"]
 summary: "The fast-lookup gotcha table. Each pitfall: WHAT bites · the VERSION/CONDITION it bites under · how to DETECT it (a grep/command/symptom) · how to AVOID it. Distinct from BATTLE-TESTED-SCENARIOS (narrative eval tasks) — this is the reference an agent scans mid-build."
 ---
 
@@ -22,7 +22,7 @@ summary: "The fast-lookup gotcha table. Each pitfall: WHAT bites · the VERSION/
 - **Bites:** targeting Node 20 (the checklist + much 2025 tooling still say "20+").
 - **Condition:** as of **2026-04-30** Node 20 (Iron) hit EOL / maintenance ended. Node 18 died 2025-04-30.
 - **Detect:** `engines.node` in `package.json` says `>=20` / `20.x`; CI runs on Node 20; `node -v` < 22.
-- **Avoid:** floor = **Node 22** (maintenance → Apr 2027), default = **Node 24** (Krypton, Active LTS → Oct 2027). Verify Vercel's *current* build min at deploy time (it tracks the lowest maintained LTS; see GAPS Gap-1). (source: ecosystem-01)
+- **Avoid:** floor = **Node 22** (maintenance → Apr 2027), default = **Node 24** (Krypton, Active LTS → Oct 2027). **Pin `engines.node: "24.x"`.** Gap-1 CLOSED (ecosystem-14): Vercel offers 24.x(default)/22.x/20.x and backports security to 20.x, but ship 24.x — don't pin upstream-dead 20.x. (source: ecosystem-01, ecosystem-14 GAP 1 → GAPS Gap-1)
 
 ## P-02 🔴 — `new Map()` / module-scope state on Vercel is now RACY, not just empty
 - **Bites:** any cross-request cache/session/counter at module scope in `app/api/**`; the lazy-init `if (!cachedClient) cachedClient = createClient()`.
@@ -32,9 +32,9 @@ summary: "The fast-lookup gotcha table. Each pitfall: WHAT bites · the VERSION/
 
 ## P-03 🟠 — Hono RPC type loss (the #1 Hono footgun, four flavors)
 - **Bites:** `hc<AppType>` client typed `unknown`, or tsc *"Type instantiation is excessively deep and possibly infinite"*, or IDE/tsserver melts as routes grow.
-- **Condition:** (a) app type imported via `paths` alias / absolute import / across monorepo packages; (b) routes not chained; (c) client+server `hono` versions differ (skew → `#private` field leak); (d) >~20 routes with raw `hc`.
-- **Detect:** RPC client members resolve to `unknown`/`any`; tsc error text "excessively deep"; tsserver lag on the client file. Same import written **relative** works (the tell).
-- **Avoid:** (a) **TS project references** (`composite: true` server + `references` from client), NOT `paths` aliases — maintainer admits no clean fix; (b) chain `.route('/a',a).route('/b',b)` in ONE composition file; (c) **pin identical `hono` versions** both sides; (d) ship **`hcWithType`** (precompiled client type), never raw `hc`. (source: ecosystem-02, ecosystem-11 #1746 #2955 #3148 → SCENARIO S-09)
+- **Condition:** (a) app type imported via `paths` alias / absolute import / across monorepo packages; (b) routes not chained; (c) client+server `hono` versions differ (skew → `#private` field leak); (d) >~20 routes with raw `hc`; (e) **async arrow-function handlers** silently lose inference (open issue #4765).
+- **Detect:** RPC client members resolve to `unknown`/`any`; tsc error text "excessively deep"; tsserver lag on the client file. Same import written **relative** works (the tell). For (e): an async arrow handler's route resolves to `unknown` while a named async fn for the same route types correctly.
+- **Avoid:** (a) **TS project references** (`composite: true` server + `references` from client), NOT `paths` aliases — maintainer admits no clean fix; (b) chain `.route('/a',a).route('/b',b)` in ONE composition file; (c) **pin identical `hono` versions** both sides; (d) ship **`hcWithType`** (precompiled client type), never raw `hc`; (e) prefer **named async functions or explicit return types** on RPC handlers over async arrows. **For typed errors across the wire / a custom fetch / external consumers, the open-issue ledger (#4270, #4560, #4954, #3495) says use oRPC, not Hono RPC.** (source: ecosystem-02, ecosystem-11 #1746 #2955 #3148, ecosystem-14 NEW-2 → SCENARIO S-09, OPINION O-07)
 
 ## P-04 🔴 — Zod `.default()` data loss on PATCH
 - **Bites:** reusing a create-schema (with `.default()`s) to validate a PATCH body silently overwrites omitted fields with defaults.

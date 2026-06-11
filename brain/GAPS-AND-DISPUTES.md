@@ -5,7 +5,7 @@ created: "2026-06-11"
 updated: "2026-06-11"
 tags: [gaps, disputes, unresolved, experiments, both-sides, unconfirmed, backend, runtime]
 synthesist: SYNTHESIS / taste-node (CP123 Wave-R)
-sources: ["brain/research/raw/field-99-REPORT.md", "brain/research/raw/ecosystem-99-REPORT.md", "brain/research/raw/field-02,03,04,05.md"]
+sources: ["brain/research/raw/field-99-REPORT.md", "brain/research/raw/ecosystem-99-REPORT.md", "brain/research/raw/ecosystem-14-verification-and-gap-closure.md", "brain/research/raw/field-02,03,04,05.md"]
 summary: "The honest edges of turbo's knowledge: (A) live DISPUTES where credible sources disagree (both sides verbatim, with turbo's working resolution + the condition that would change it), (B) what could NOT be confirmed this round (the verify-flags), (C) the EXPERIMENTS turbo must run to settle questions no source answers. This file is the intellectual-honesty layer — an expert knows the boundary of what they know."
 ---
 
@@ -63,17 +63,24 @@ summary: "The honest edges of turbo's knowledge: (A) live DISPUTES where credibl
 - **turbo's resolution:** default **Standard-Schema-bound** *when swappability is wanted* (bundle-critical surfaces that might move to Valibot); **`@hono/zod-validator`** when you want Zod-specific ergonomics and won't swap. Low-stakes — both work; it's a hedge-vs-ergonomics trade, not a correctness one.
 - **Source:** ecosystem-03 (noted as a routing choice, not a hard dispute — flagged here for completeness).
 
+## DISPUTE G (2nd-pass finding) — Result lib: is neverthrow still the right default, given it's PARKED?
+- **Side "neverthrow is fine":** it's stable, widely adopted, best-documented, has `eslint-plugin-neverthrow` enforcement, and the Result/ResultAsync API is **frozen-by-design** — there's little left to add. The energy law only needs the core primitives.
+- **Side "neverthrow is idling":** live data (ecosystem-14 NEW-1, `gh api repos/supermacro/neverthrow` + `npm view`, 2026-06-11) shows **8.2.0 shipped 2025-02-21 and NOTHING since — 16 months with no release**; last commit (2026-02-14) was a README-image/docs change, not code; 77 open issues, NOT archived. It's in low-maintenance mode, not active development. **Effect** (`effect@3.21.3`, published 2026-06-05) is the actively-shipping batteries-included alternative — at the cost of a whole-program paradigm + steep learning curve.
+- **turbo's working resolution (UPDATED by the 2nd pass):** there are **three honest options, ranked by turbo's likely need**: (1) **hand-rolled discriminated-union Result** — `type Result<T,E> = { ok: true; value: T } | { ok: false; error: E }`, zero-dep, satisfies the energy law directly, dodges the maintenance question, most "Simplicity First" (Karpathy) → **recommended default for a service that only needs the *pattern*, not the library**; (2) **neverthrow 8.2** — when you want its combinators (`safeTry`, `Result.combine`, `fromThrowable`/`fromPromise`) and the eslint plugin, accepting the parked status for a frozen API; (3) **Effect** — only for genuinely Effect-shaped work (system-wide concurrency/resource-safety). The earlier OPINIONS/TOOL-MATRIX treat neverthrow as the unqualified canonical pick; this dispute adds the *velocity contrast* and the zero-dep option.
+- **What would change it:** neverthrow resuming active releases → it re-becomes the unqualified default. turbo adopting Effect-shaped concurrency → Effect graduates from "escape hatch" to "default."
+- **Source:** ecosystem-14 NEW-1, ecosystem-05. → OPINION O-03, TOOL-MATRIX §4, EXPERTISE-MAP JOB 5.
+
 ---
 
 # PART B — WHAT COULD NOT BE CONFIRMED (verify-flags; carry as unverified)
 
-## Gap-1 ⚠️ — Vercel's CURRENT minimum Node version (post-Node-20-EOL)
-The checklist says "Vercel needs Node 20.9+," but Node 20 reached EOL 2026-04-30. **Confirmed:** Node 20 is dead, 24 is LTS. **NOT confirmed:** what Vercel's build min is *today* (whether they bumped to 22 and deprecated 20 builds — they deprecated Node 18 builds in 2025, so 20-deprecation likely follows EOL but wasn't verified from Vercel's own docs).
-**Action for turbo:** `curl`/check the vercel.com/docs runtimes page at build time before pinning the `engines` field. Don't assume. (Source: ecosystem-99.)
+## Gap-1 ✅ CLOSED — Vercel's CURRENT minimum Node version (post-Node-20-EOL)
+The checklist says "Vercel needs Node 20.9+," but Node 20 reached EOL 2026-04-30. **Originally flagged unverified; now CLOSED by the 2nd-pass** (ecosystem-14, from Vercel's own docs page `vercel.com/docs/functions/runtimes/node-js/node-js-versions`, fetched 2026-06-11): Vercel offers **24.x (default) / 22.x / 20.x**, and it **still allows 20.x even though upstream EOL'd 2026-04-30** — Vercel decouples from the upstream Node schedule and *"automatically rolls out minor and patch updates when needed, such as to fix a security issue."* So "Vercel needs Node 20.9+" is **not stale on Vercel** (20.x is still a valid target there) but IS stale as general advice (upstream 20 is dead).
+**Resolution for turbo:** pin **`engines.node: "24.x"`** — matches Vercel's default, gets native `.ts` type-stripping + sub-200ms cold starts, and avoids shipping on an upstream-EOL'd runtime even though Vercel would still permit it. Node 22 = conservative floor if a dependency hasn't certified 24. **Residual caveat:** the Vercel docs page is dated 2026-02-27 (pre-Node-20-EOL); Vercel *could* drop 20.x builds at any time (they deprecated Node 18 builds in 2025 on the same logic) — don't pin 20.x regardless. (Source: ecosystem-14 GAP 1, ecosystem-99. → OPINION O-09, PITFALL P-01.)
 
-## Gap-2 ⚠️ — Exact `@hono/zod-openapi` v0.x→v1.0 breaking changes
-**Confirmed:** it reached **v1.4.0** (the OpenAPI stack stabilized — a meaningful milestone). **NOT pulled:** the v0.x→v1.0 migration notes/changelog — so the exact breaks for repos still on 0.x (like `w3cj/hono-open-api-starter`, last pushed Oct 2025) are unenumerated.
-**Action for turbo:** fetch the `@hono/zod-openapi` v1.0 release notes before adopting the starter wholesale. (Source: ecosystem-99. → SCENARIO S-10.)
+## Gap-2 ✅ CLOSED — Exact `@hono/zod-openapi` v0.x→v1.0 breaking changes
+**Originally flagged "v1.0 notes not pulled"; now CLOSED** (ecosystem-14, from the package CHANGELOG, github.com/honojs/middleware zod-openapi, fetched 2026-06-11). The v1.0.0 break is **purely a peer-dependency shift, not a code-API rewrite**: (1) **v1.0.0** migrated Zod v3→v4, so `peerDependencies.zod` is now `>=4.0.0` — **v1 REQUIRES Zod 4**; (2) **v1.4.0** bumped the Hono peer dep from ≥4.3.6 to **≥4.10.0** (the 4-arg `MiddlewareHandler` type); (3) `@hono/zod-validator` updated peers in lockstep; (4) **no other code-level breaks** — `createRoute`/`OpenAPIHono` call sites are unchanged.
+**The load-bearing consequence:** adopting `@hono/zod-openapi@1.4.0` **forces a Zod 3→4 migration** across the boundary layer — which drags in the `.default()`-on-PATCH data-loss trap (re-audit every PATCH schema), `z.coerce`→`unknown`, stricter UUID. Upside: Zod 4 is ~14× faster string parsing, ~2.3× smaller, ~10× fewer tsc instantiations. **The `w3cj/hono-open-api-starter` (Oct 2025, on 0.x + Zod 3) structure transfers; its version pins do NOT** — lift it at `@hono/zod-openapi@^1.4`, `zod@^4.4`, `hono@^4.12.25`, run the Zod-4 codemod, re-test every PATCH schema. (Source: ecosystem-14 GAP 2, ecosystem-99. → SCENARIO S-10, PITFALL P-04/P-05, EXPERIMENT E-5.)
 
 ## Gap-3 ⚠️ — Apples-to-apples Hono vs Express vs Fastify benchmark on the SAME hardware
 Hono's own benchmark page gives Hono-vs-edge-router numbers (402k ops/sec Workers, 136k req/sec Deno) but **explicitly omits direct Express/Fastify comparison rows.** The framework-speed claims rest on Hono's relative numbers + single-author practitioner blogs (Sohail/Aslam), whose absolute RPS numbers are **not independently reproduced** (field-02 flags the synthetic-vs-DB-bound spread explicitly).
@@ -117,10 +124,10 @@ These are the questions where the honest answer is *"run it and find out."* When
 - **Method:** grep + a `node --experimental-strip-types` smoke-run + the `tsc --noEmit` gate. If clean → adopt build-less Node-24 deploy. If not → refactor (enums→`as const` unions; `paths`→project references) first.
 - **Writes back:** whether turbo can run build-less, and the refactors needed. The `tsc --noEmit` CI gate stays regardless (OPINION O-09).
 
-## E-5 — `@hono/zod-openapi` v1 upgrade diff (close Gap-2 before scaffolding from the starter)
-- **Question:** what breaks when bumping the reference starter from `@hono/zod-openapi` 0.x → 1.4.0?
-- **Method:** fetch the v1.0 release notes; bump in a branch; run the starter's Vitest suite; fix the breaks; record them.
-- **Writes back:** the v0→v1 migration checklist for the starter — turning SCENARIO S-10's "bump before use" from a warning into a known procedure.
+## E-5 — `@hono/zod-openapi` v1 upgrade EXECUTION (Gap-2 is closed; this is now a known procedure, not a discovery)
+- **Question (answered in principle by ecosystem-14, Gap-2 above):** the v0.x→v1.x break is a peer-dep shift (requires Zod ≥4, Hono ≥4.10), which **forces the full Zod 3→4 migration**. The remaining work is *execution*, not investigation.
+- **Method:** in a branch, bump the starter to `@hono/zod-openapi@^1.4`, `zod@^4.4`, `hono@^4.12.25`; run the Zod-4 codemod (`zod-v3-to-v4`/Hypermod); run the Vitest suite; **re-audit every PATCH schema for the `.default()` data-loss trap** (PITFALL P-04); fix `z.coerce`→`unknown` compile breaks and any non-canonical stored "UUIDs" (stricter `z.uuid()`).
+- **Writes back:** the concrete per-repo Zod-4 diff for the starter — turning SCENARIO S-10's "bump before use" from a warning into a recorded checklist in ORG_MEMORY. (No longer a *gap*-closing experiment; the gap is closed — this is the migration runbook.)
 
 ---
 

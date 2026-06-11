@@ -71,23 +71,35 @@ only. Flagged `rhinobase/hono-rate-limiter` (642★) as echo's de-facto tool, no
 
 # THREE THINGS I COULD NOT CONFIRM (for GAPS-AND-DISPUTES)
 
-1. **Vercel's CURRENT minimum Node version (post-Node-20-EOL).** The checklist says "Vercel needs Node 20.9+,"
-   but Node 20 reached EOL 2026-04-30. I confirmed Node 20 is dead and 24 is the LTS, but did **not** verify from
-   Vercel's own docs what their build min is *today* (whether they bumped to 22 and deprecated 20 builds). turbo
-   should `curl`/check Vercel's runtime docs at build time before pinning the `engines` field. **Action: verify
-   against vercel.com/docs runtimes page.**
+> **UPDATE 2026-06-11 (2nd pass):** Gaps 1 & 2 are now CLOSED in `ecosystem-14-verification-and-gap-closure.md`;
+> Gap 3 confirmed as a deliberate non-claim (resolve by measurement, not citation). Originals retained below for
+> the record, with resolution inline.
 
-2. **Exact `@hono/zod-openapi` v1.0 breaking changes vs 0.x.** I confirmed it reached **v1.4.0** (a meaningful
-   milestone — the OpenAPI stack stabilized) but did **not** pull the v0.x→v1.0 migration notes / changelog, so I
-   can't enumerate what breaks for repos (like `hono-open-api-starter`, last pushed Oct 2025) still on 0.x.
-   **Action: fetch the @hono/zod-openapi v1.0 release notes before adopting the starter wholesale.**
+1. **Vercel's CURRENT minimum Node version (post-Node-20-EOL).** ~~Not verified.~~ **CLOSED (ecosystem-14):**
+   Vercel offers **24.x (default) / 22.x / 20.x**; it still allows Node 20.x even though upstream EOL'd 2026-04-30
+   (Vercel backports security patches independently). **turbo → pin `engines.node: "24.x"`** (Vercel default +
+   native TS + not-upstream-EOL). Source: vercel.com/docs/functions/runtimes/node-js/node-js-versions.
 
-3. **The precise Hono RegExpRouter throughput vs Express/Fastify head-to-head.** Hono's own benchmark page gives
-   Hono-vs-edge-routers numbers (402k ops/sec on Workers, 136k req/sec on Deno) but **explicitly omits direct
-   Express/Fastify comparison rows** ("doesn't provide direct Express or Fastify metrics"). My framework-speed
-   claims rely on Hono's relative numbers + secondary sources, not a single apples-to-apples 2026 benchmark of
-   all three on the same hardware. The practical takeaway (router speed rarely matters vs DB/IO) stands
-   regardless. **Action: if a perf decision hinges on it, run an in-repo benchmark; don't trust marketing pages.**
+2. **Exact `@hono/zod-openapi` v1.0 breaking changes vs 0.x.** ~~Not pulled.~~ **CLOSED (ecosystem-14):** v1.0's
+   only break is the **Zod 3→4 peer bump** (v1 requires Zod ≥4); v1.4.0 additionally needs **Hono ≥4.10**. No
+   code-API rewrite. Consequence: adopting v1 **forces the whole Zod-4 migration**, incl. the `.default()`-on-PATCH
+   data-loss trap — re-audit every PATCH schema. The `hono-open-api-starter` structure transfers; its version pins
+   do not. Source: honojs/middleware zod-openapi CHANGELOG.
+
+3. **The precise Hono RegExpRouter throughput vs Express/Fastify head-to-head.** **Confirmed as a non-claim
+   (ecosystem-14 Gap 3):** no apples-to-apples 2026 benchmark exists; the decision is already resolved by the
+   practitioner layer (framework rarely the bottleneck; honest migrations moved for DX/correctness, not speed).
+   **Action: run an in-repo benchmark on turbo's own request shape if a perf call ever hinges on it.**
+
+## NET-NEW from the 2nd pass (see ecosystem-14)
+- **neverthrow is PARKED, not abandoned:** last release 8.2.0 was **2025-02-21** (16mo), last commit Feb 2026 was
+  docs-only. Stable for a frozen API, but no longer actively developed. turbo's Result<T,E> default → **hand-rolled
+  discriminated union (zero-dep, Simplicity First)**; Effect (`3.21.3`, shipping weekly) if it wants batteries.
+- **Hono RPC typed-error/custom-fetch gaps are issue-backed** (open: #4270, #4560, #4765, #4954) → use **oRPC** for
+  typed errors across the wire / external consumers; Hono RPC for internal TS-only happy path.
+- **Every Hono `stream*` MUST pass the 3rd-arg error handler** (verbatim docs: `onError` does NOT fire mid-stream;
+  default sends errors to `console.error` — the exact anti-pattern the energy law bans). Hono has **no built-in SSE
+  keepalive** — turbo implements its own heartbeat; `X-Accel-Buffering: no` for the nginx-buffering trap.
 
 ---
 

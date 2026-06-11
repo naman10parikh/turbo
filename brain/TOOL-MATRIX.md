@@ -5,7 +5,7 @@ created: "2026-06-11"
 updated: "2026-06-11"
 tags: [tool-matrix, defaults, cli, api, mcp, secrets, env-vars, versions, backend, runtime]
 synthesist: SYNTHESIS / taste-node (CP123 Wave-R)
-sources: ["brain/research/raw/ecosystem-01,02,03,04,05,06,07,12,13.md", "brain/research/raw/field-03,05,06.md"]
+sources: ["brain/research/raw/ecosystem-01,02,03,04,05,06,07,12,13,14.md", "brain/research/raw/field-03,05,06.md"]
 summary: "The canonical tool table for turbo: per decision, the DEFAULT vs the ALT, when-to-use-which, the AGENT-ACCESS surface (CLI flags / API / MCP), the pinned VERSION (npm view 2026-06-11), and the ENV VARS / SECRETS each needs. The secrets column feeds the Wave-P Required-Secrets manifest — every secret here is a candidate row in .env.example."
 ---
 
@@ -58,12 +58,13 @@ summary: "The canonical tool table for turbo: per decision, the DEFAULT vs the A
 ## 4 — Error handling (the "Result<T,E>, no try-catch-swallow" law)
 | Tool | Version | Role | When | Agent-access | Secrets/env |
 |---|---|---|---|---|---|
-| **neverthrow** ✅ | **8.2.0** | default Result lib | expected domain errors; `safeTry` for multi-step | npm | none |
-| `eslint-plugin-neverthrow` | latest | **mandatory** | enforces every Result consumed (Rust `#[must_use]`) | lint config | none |
-| Effect | 3.21.3 | heavy alt | genuinely Effect-shaped (system-wide concurrency/resource-safety) | npm | none |
+| **Hand-rolled discriminated union** ✅ | (zero-dep) | **Simplicity-First default** | service needs the *pattern*, not a library: `type Result<T,E> = {ok:true;value:T} \| {ok:false;error:E}` | none | none |
+| **neverthrow** ✅ | **8.2.0** (pub 2025-02-21 — **PARKED**) | combinator default | when you want `safeTry`/`Result.combine`/`fromThrowable`+`fromPromise` AND the eslint plugin | npm | none |
+| `eslint-plugin-neverthrow` | latest | **mandatory with neverthrow** | enforces every Result consumed (Rust `#[must_use]`) | lint config | none |
+| Effect | 3.21.3 (shipping weekly) | heavy alt | genuinely Effect-shaped (system-wide concurrency/resource-safety) | npm | none |
 | try-catch | (native) | boundary-only | wrap a thrower into a Result, or truly-fatal crash | — | none |
 
-(source: ecosystem-05, PITFALL P-07/P-08)
+**neverthrow is stable but PARKED** (no release in 16mo, last commit docs-only — ecosystem-14 NEW-1): fine for a frozen API, but the zero-dep union is the more "Simplicity First" default unless you need the combinators; Effect is the *actively-developed* heavyweight. (source: ecosystem-05, ecosystem-14 NEW-1, PITFALL P-07/P-08, GAPS Dispute G)
 
 ## 5 — Runtime
 | Tool | Version | Role | When | Agent-access | Secrets/env |
@@ -157,7 +158,7 @@ The minimal set turbo needs, by capability. **Most of the stack needs NO secrets
 | `CLOUDFLARE_ACCOUNT_ID` | wrangler account scoping | yes (if Workers) | non-secret but required |
 | `GITHUB_PERSONAL_ACCESS_TOKEN` | `gh` ecosystem watch (RSI), github MCP | yes (RSI loop) | already in energy `.env.example` |
 | `ANTHROPIC_API_KEY` / `CLAUDE_CODE_OAUTH_TOKEN` | the Claude half of the RSI loop (dsip.json) | yes (RSI Claude half) | dsip: deterministic half is $0/tokenless; Claude half lights when token set |
-| (Node version) `engines.node` `>=22` | runtime floor | yes | **NOT a secret** — config; verify Vercel min at build (GAP Gap-1) |
+| (Node version) `engines.node` `"24.x"` | runtime default (floor 22) | yes | **NOT a secret** — config. Gap-1 CLOSED: Vercel offers 24.x(default)/22.x/20.x; pin **24.x** (Vercel default + native `.ts` + not-upstream-EOL). Don't pin 20.x (upstream-dead). |
 | Bun version pin (CI) | `bun install --production` stability | yes (if Bun in CI) | **NOT a secret** — pin in CI config (PITFALL P-14) |
 | `PACT_BROKER_TOKEN` | Pact consumer-driven contract tests | **no** (only if Pact used selectively) | most contracts = free RPC-type + OpenAPI conformance |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` (+headers) | OpenTelemetry tracing | no (only if OTel adopted) | Bun OTel support is newer/experimental |
