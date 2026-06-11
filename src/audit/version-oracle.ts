@@ -156,11 +156,16 @@ export async function runVersionCheck(
   const pins = parseMatrixPins(matrixText);
   const eolRuntimes = detectEolRuntimes(matrixText);
 
+  // Query npm for all watched packages in PARALLEL — each call is independently bounded by
+  // `timeoutMs`, so the whole command stays ~one-timeout wide even with no network. (Sequential
+  // awaits would stack to N×timeout — 6×2.5s≈15s offline, blowing the "well under ~5s" bound.)
+  const liveVersions = await Promise.all(WATCHED_PACKAGES.map((pkg) => npmViewVersion(pkg, timeoutMs)));
+
   let anyOnline = false;
   const findings: PinFinding[] = [];
-  for (const pkg of WATCHED_PACKAGES) {
+  WATCHED_PACKAGES.forEach((pkg, i) => {
     const pinned = pins[pkg] ?? null;
-    const live = await npmViewVersion(pkg, timeoutMs);
+    const live = liveVersions[i] ?? null;
     const current = live ?? LAST_KNOWN_CURRENT[pkg] ?? null;
     const source: "npm" | "local-fallback" = live ? "npm" : "local-fallback";
     if (live) anyOnline = true;
@@ -182,7 +187,7 @@ export async function runVersionCheck(
     }
 
     findings.push({ pkg, pinned, current, source, status, ...(note ? { note } : {}) });
-  }
+  });
 
   return { online: anyOnline, findings, eolRuntimes };
 }
