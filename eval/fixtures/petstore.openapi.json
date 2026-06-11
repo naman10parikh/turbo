@@ -1,0 +1,113 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Petstore",
+    "version": "1.0.0",
+    "description": "turbo acceptance fixture (E20). GET list + POST create-with-defaults + PATCH — forces a dedicated no-default PATCH schema (O-04/P-04)."
+  },
+  "paths": {
+    "/pets": {
+      "get": {
+        "operationId": "listPets",
+        "summary": "List all pets",
+        "responses": {
+          "200": {
+            "description": "An array of pets",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Pet" } }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createPet",
+        "summary": "Create a pet",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/CreatePet" } }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created pet",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Pet" } }
+            }
+          }
+        }
+      }
+    },
+    "/pets/{petId}": {
+      "get": {
+        "operationId": "getPet",
+        "summary": "Get a pet by id",
+        "parameters": [
+          { "name": "petId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "A pet",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Pet" } }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updatePet",
+        "summary": "Update a pet (partial)",
+        "parameters": [
+          { "name": "petId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/UpdatePet" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated pet",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Pet" } }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Pet": {
+        "type": "object",
+        "required": ["id", "name", "status"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "tag": { "type": "string" },
+          "status": { "type": "string", "enum": ["available", "pending", "sold"] }
+        }
+      },
+      "CreatePet": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "tag": { "type": "string" },
+          "status": { "type": "string", "enum": ["available", "pending", "sold"], "default": "available" }
+        }
+      },
+      "UpdatePet": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "tag": { "type": "string" },
+          "status": { "type": "string", "enum": ["available", "pending", "sold"] }
+        }
+      }
+    }
+  }
+}
