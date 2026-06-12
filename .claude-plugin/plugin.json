@@ -1,0 +1,26 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "turbo",
+  "version": "0.1.0",
+  "description": "The Energy fleet's backend/runtime employee — scaffolds & audits TS-strict Hono services from OpenAPI (Zod boundaries, no-default PATCH schema, Result<T,E>, SSE-safe, contract-tested). Owns API/runtime only; rate-limit/cache is echo's seam. Powered by Energy.",
+  "author": {
+    "name": "Energy Platform",
+    "email": "[removed]"
+  },
+  "homepage": "https://github.com/naman10parikh/turbo/blob/main/AGENTS.md",
+  "repository": "https://github.com/naman10parikh/turbo",
+  "license": "MIT",
+  "keywords": ["claude-code", "backend", "runtime", "hono", "zod", "openapi", "harness", "energy"],
+  "skills": [
+    "./skills/scaffold-hono-service",
+    "./skills/audit-serverless-state",
+    "./skills/zod-boundary-and-patch",
+    "./skills/sse-streaming-safely",
+    "./skills/design-api-contract"
+  ],
+  "agents": [
+    "./.claude/agents/runtime-safety-auditor.md",
+    "./.claude/agents/contract-reviewer.md"
+  ],
+  "mcpServers": "./.mcp.json"
+}

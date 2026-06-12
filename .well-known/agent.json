@@ -1,0 +1,59 @@
+{
+  "protocolVersion": "1.0",
+  "name": "turbo",
+  "description": "The Energy fleet's backend / runtime domain-expert employee. Scaffolds and audits TS-strict Hono services from an OpenAPI spec — Zod boundaries at every route, a dedicated no-default PATCH schema, typed Result<T,E> errors, SSE streaming done safely, contract-tested routes. Designs the racy cross-request-state class of bug out by construction. Owns API/runtime only; rate-limit/cache is echo's seam. Powered by Energy.",
+  "version": "0.1.0",
+  "provider": {
+    "organization": "Energy",
+    "url": "https://github.com/naman10parikh/turbo"
+  },
+  "documentationUrl": "https://github.com/naman10parikh/turbo/blob/main/AGENTS.md",
+  "endpoint": "stdio:node dist/mcp/server.js",
+  "transports": [
+    { "type": "mcp", "command": "node", "args": ["dist/mcp/server.js"], "transport": "stdio", "note": "the turbo MCP server (turbo-mcp) — default transport" },
+    { "type": "http", "url": "http://localhost:7790", "note": "documented dual-mode: a hosted @hono/mcp Streamable-HTTP variant serving the same 8 tools" }
+  ],
+  "capabilities": ["scaffold", "gen", "audit", "check", "contract", "stream-doctor", "migrate-plan", "brain", "explain"],
+  "defaultInputModes": ["text/plain", "application/json"],
+  "defaultOutputModes": ["text/plain", "application/json"],
+  "skills": [
+    {
+      "id": "gen_from_openapi",
+      "name": "Generate a typed service from OpenAPI",
+      "description": "THE acceptance test: OpenAPI spec -> typed Hono service (Zod boundaries, no-default PATCH schema, typed routes chained to one AppType, /openapi.json + Scalar, /health, Pino JSON logs, hcWithType client), contract tests green. Maps to `turbo api`.",
+      "tags": ["backend", "openapi", "codegen", "hono", "zod"],
+      "examples": [
+        "Generate a typed Hono service from this petstore.openapi.json.",
+        "Build me a backend from this OpenAPI spec with contract tests."
+      ]
+    },
+    {
+      "id": "scaffold_service",
+      "name": "Scaffold a law-compliant Hono service",
+      "description": "Stand up a blank TS-strict Hono service from the w3cj/hono-open-api-starter baseline, deps bumped to current pins (Hono >=4.12.25, Zod 4.4, @hono/zod-openapi 1.x), with /health, /openapi.json, hcWithType, and a runnable contract script. Maps to `turbo scaffold`.",
+      "tags": ["backend", "scaffold", "hono"],
+      "examples": ["Scaffold a new backend service.", "Stand up a blank Hono API I can build on."]
+    },
+    {
+      "id": "audit_service",
+      "name": "Audit a service for runtime pitfalls",
+      "description": "Run the 16-pitfall audit over a service tree: module-scope new Map()/Fluid race (P-02), Zod .default()-on-PATCH data loss (P-04), missing tsc --noEmit gate (P-09), SSE traps (P-10/P-11), RPC-type loss (P-03), CORS wildcard + credentials (S-11). Findings keyed by P-ID. Maps to `turbo audit`.",
+      "tags": ["backend", "audit", "security", "anti-pattern"],
+      "examples": ["Audit this service for the data-bleed bug.", "Check my backend for known Hono/Zod pitfalls."]
+    },
+    {
+      "id": "stream_doctor",
+      "name": "Audit a streaming route (SSE)",
+      "description": "Audit an SSE/streaming route file for the traps that bite every deploy: missing 3rd-arg error handler, missing X-Accel-Buffering:no, no while(!stream.aborted) abort check. Maps to `turbo stream-doctor`.",
+      "tags": ["backend", "sse", "streaming"],
+      "examples": ["Check my SSE route for the nginx-buffering and onError traps."]
+    },
+    {
+      "id": "search_brain",
+      "name": "Search / explain the backend brain",
+      "description": "BM25 ranked search over turbo's expertise brain (pitfalls P-, scenarios S-, opinions O-), or explain any ID with its detection + fix. Maps to `turbo brain` / `turbo explain`.",
+      "tags": ["backend", "knowledge", "search"],
+      "examples": ["What does turbo think about Bun for an always-on service?", "Explain P-04."]
+    }
+  ]
+}

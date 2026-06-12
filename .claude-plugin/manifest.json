@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0",
+  "name": "turbo",
+  "display_name": "turbo — Backend / Runtime Engineer",
+  "description": "The Energy fleet's backend/runtime employee. Scaffolds and audits TS-strict Hono services from an OpenAPI spec — Zod boundaries at every route, a dedicated no-default PATCH schema, typed Result<T,E> errors, SSE done safely, contract-tested routes. Designs the racy cross-request-state class of bug out by construction. Owns API/runtime only; rate-limit/cache is echo's seam.",
+  "version": "0.1.0",
+  "author": "Energy Platform",
+  "license": "MIT",
+  "repository": "https://github.com/naman10parikh/turbo",
+  "keywords": ["claude-code", "backend", "runtime", "hono", "zod", "openapi", "result", "sse", "anti-pattern", "harness", "energy"],
+  "mcp_servers": [
+    {
+      "name": "turbo",
+      "description": "turbo's own backend tools over JSON-RPC — scaffold_service / gen_from_openapi / audit_service / check_versions / contract_test / stream_doctor / explain_pitfall / search_brain. A stdio CLI-wrapper (each tool shells out to the turbo CLI with --json, so the tools never drift from the gated CLI). Documented dual-mode: a hosted @hono/mcp Streamable-HTTP variant serves the same 8 tools.",
+      "transport": "stdio",
+      "command": "node",
+      "args": ["dist/mcp/server.js"],
+      "env": {}
+    }
+  ],
+  "cli": {
+    "binary": "turbo",
+    "entrypoint": "./dist/cli/index.js",
+    "commands": [
+      { "name": "api", "description": "THE acceptance test: OpenAPI spec -> typed Hono service (Zod boundaries, no-default PATCH schema, typed routes -> one AppType, /openapi.json + Scalar, /health, Pino, hcWithType), contract tests green", "usage": "turbo api --spec <openapi> [--out DIR] [--runtime node|workers] [--json]" },
+      { "name": "scaffold", "description": "stand up a blank law-compliant Hono service from the w3cj/hono-open-api-starter baseline, deps bumped to current pins (Hono >=4.12.25, Zod 4.4, @hono/zod-openapi 1.x)", "usage": "turbo scaffold [--name N] [--out DIR]" },
+      { "name": "audit", "description": "run the 16-pitfall audit over a service: new Map()/Fluid race (P-02), Zod .default()-on-PATCH (P-04), missing tsc --noEmit (P-09), SSE traps (P-10/P-11), RPC-type loss (P-03), CORS+credentials (S-11). Findings keyed by P-ID", "usage": "turbo audit <dir> [--json]" },
+      { "name": "check", "description": "version-drift oracle: npm view vs brain/TOOL-MATRIX.md pins; flags EOL runtimes (Node 20) + the Hono security floor (<4.12.16). Offline-safe", "usage": "turbo check [--json]" },
+      { "name": "contract", "description": "contract-test the service: responses parse vs /openapi.json; oasdiff gate vs a prior spec; RPC typeof app compile check", "usage": "turbo contract <dir> [--diff <old-spec>] [--json]" },
+      { "name": "stream-doctor", "description": "audit a streaming route for the SSE traps: missing 3rd-arg error handler, missing X-Accel-Buffering:no, no while(!stream.aborted)", "usage": "turbo stream-doctor <file> [--json]" },
+      { "name": "migrate-plan", "description": "emit a Strangler-Fig migration plan (wrap-then-strangle, dependency-audit first, rollback per step). Never big-bang", "usage": "turbo migrate-plan <dir> --to <fastify|hono>" },
+      { "name": "brain", "description": "BM25 ranked search over brain/ (the Memory layer) — pitfalls/scenarios/opinions", "usage": "turbo brain <query> [--json]" },
+      { "name": "explain", "description": "print a pitfall/scenario/opinion by ID (P-/S-/O-) with its detection + fix", "usage": "turbo explain <P-id|S-id|O-id> [--json]" },
+      { "name": "eval", "description": "run the Hamel eval pyramid L1/L2/L3 over the golden tasks (G1-G13)", "usage": "turbo eval [--level 1|2|3] [--json]" }
+    ]
+  },
+  "capabilities": {
+    "tools": [
+      { "name": "gen_from_openapi", "description": "THE acceptance test over MCP: OpenAPI spec -> typed Hono service, contract tests green. Maps to `turbo api`.", "when_to_use": "When you have an OpenAPI spec and want a typed, law-compliant Hono service generated with Zod boundaries and a no-default PATCH schema." },
+      { "name": "scaffold_service", "description": "Stand up a blank law-compliant Hono service from the w3cj baseline, deps bumped. Maps to `turbo scaffold`.", "when_to_use": "When you want a clean Hono service to build on with /health, /openapi.json, hcWithType, and a runnable contract script." },
+      { "name": "audit_service", "description": "Run the 16-pitfall audit over a service tree; findings keyed by P-ID. Maps to `turbo audit`.", "when_to_use": "When you need to check a backend for the data-bleed (new Map()), PATCH-data-loss, SSE, or stale-pin classes before shipping." },
+      { "name": "check_versions", "description": "Version-drift oracle: flag stale pins, the Hono security floor, EOL runtimes. Maps to `turbo check`.", "when_to_use": "When you want to know whether a service's dependency pins are current and secure." },
+      { "name": "contract_test", "description": "Contract-test a service vs /openapi.json + RPC type + a spec diff-gate. Maps to `turbo contract`.", "when_to_use": "When you want to assert a service still honors its published contract, or diff a new spec against a prior one." },
+      { "name": "stream_doctor", "description": "Audit a streaming route for the SSE traps. Maps to `turbo stream-doctor`.", "when_to_use": "When you have an SSE/streaming route and want to catch the nginx-buffering and onError-swallow traps." },
+      { "name": "explain_pitfall", "description": "Print a pitfall/scenario/opinion by ID with detection + fix. Maps to `turbo explain`.", "when_to_use": "When you have a P-/S-/O- ID and want its canonical detection + remediation." },
+      { "name": "search_brain", "description": "BM25 ranked search over brain/ — the Memory layer over MCP. Maps to `turbo brain`.", "when_to_use": "When you need turbo's stance on a backend question (e.g. Bun for an always-on service, REST vs RPC routing)." }
+    ]
+  },
+  "skills": [
+    "skills/scaffold-hono-service/SKILL.md",
+    "skills/audit-serverless-state/SKILL.md",
+    "skills/zod-boundary-and-patch/SKILL.md",
+    "skills/sse-streaming-safely/SKILL.md",
+    "skills/design-api-contract/SKILL.md"
+  ],
+  "subAgents": [
+    ".claude/agents/runtime-safety-auditor.md",
+    ".claude/agents/contract-reviewer.md"
+  ],
+  "hooks": [
+    ".claude/hooks/tsc-gate.sh",
+    ".claude/hooks/map-patch-grep-gate.sh"
+  ],
+  "settings": ".claude/settings.json",
+  "brain": "brain/MOC - turbo.md",
+  "install_instructions": "1. Build the package: pnpm install && pnpm build\n2. Add this plugin to Claude Code: Settings -> Plugins -> Add local plugin -> select this directory (or `claude plugin install turbo`).\n3. The turbo CLI, the turbo MCP tools (8), the 5 skills, the tsc --noEmit + new Map()/PATCH grep-gate hooks, and the 2 sub-agent personas (runtime-safety-auditor + contract-reviewer) are now available."
+}
