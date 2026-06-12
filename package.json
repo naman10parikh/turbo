@@ -47,7 +47,8 @@
   "dependencies": {
     "@apidevtools/swagger-parser": "^12.1.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
-    "commander": "^15.0.0"
+    "commander": "^15.0.0",
+    "e2b": "^2.29.1"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
