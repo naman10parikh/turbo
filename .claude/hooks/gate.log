@@ -1,0 +1,6 @@
+# turbo law gate — block log (append-only, single canonical path).
+# The PreToolUse gates append one line per BLOCK here, of the form:
+#   [<iso-ts>] BLOCK <reason>: <detail>
+# Reasons the gates emit: a failed type-check on commit, or a flagged Map/PATCH write.
+# Empty below this header on a clean checkout (no blocks yet). Run the B12 verify
+# (inject a type error, attempt a gated commit) to see a real BLOCK line appended.
