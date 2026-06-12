@@ -144,11 +144,13 @@ program
 
 program
   .command("eval")
-  .description("run the eval pyramid L1/L2/L3 (wiring lands in E19)")
-  .option("--level <n>", "eval level: 1 | 2 | 3")
+  .description("run the Hamel eval pyramid L1/L2/L3 over the golden tasks (G1–G13)")
+  .option("--level <n>", "eval level: 1 | 2 | 3 (omit → all)")
   .option("--json", "emit machine-readable JSON", false)
-  .action((o: { json: boolean }) => {
-    runEval({ json: o.json });
+  .action((o: { json: boolean; level?: string }) => {
+    const parsed = o.level ? Number.parseInt(o.level, 10) : undefined;
+    const level = parsed === 1 || parsed === 2 || parsed === 3 ? parsed : undefined;
+    runEval({ json: o.json, level });
   });
 
 program.parseAsync(process.argv).catch((e: unknown) => {
