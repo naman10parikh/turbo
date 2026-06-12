@@ -26,7 +26,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsc -p tsconfig.json --watch",
-    "test": "vitest run",
+    "test": "node scripts/run-tests.mjs",
+    "test:vitest": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "mcp": "node dist/mcp/server.js",
     "rsi": "node workflows/rsi.workflow.js --deterministic",
