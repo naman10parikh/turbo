@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>turbo — backend/runtime employee</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="masthead">
+  <div class="brand">
+    <div class="wordmark">turbo</div>
+    <div class="tagline">the backend an agent can build, ship &amp; reason about — typed end to end, racy state designed out</div>
+  </div>
+  <div class="stat-strip">
+    <div class="stat"><div class="v num" id="stat-evals">—</div><div class="k">evals green</div></div>
+    <div class="stat"><div class="v accent num" id="stat-blocking">—</div><div class="k">CI-blocking</div></div>
+    <div class="stat"><div class="v num" id="stat-runs">—</div><div class="k">runs logged</div></div>
+    <div class="stat"><div class="v num" id="stat-pitfalls">16</div><div class="k">pitfalls</div></div>
+  </div>
+</header>
+
+<div class="shell">
+  <nav class="rail">
+    <button data-view="brain" class="active"><span class="ico">◎</span> Brain browser</button>
+    <button data-view="ask"><span class="ico">✦</span> Ask the employee</button>
+    <button data-view="runs"><span class="ico">≣</span> Run log</button>
+    <button data-view="evals"><span class="ico">✓</span> Eval scores</button>
+    <div class="rail-foot">
+      Read-mostly cockpit — the chairman's eyes.<br>
+      Builds &amp; audits run on the CLI / MCP, never here.<br><br>
+      Stack: Hono&nbsp;4.12.25 · Node&nbsp;24 · Zod&nbsp;4.4 · Result&lt;T,E&gt; · SSE.<br>
+      Boundary: API/runtime only — <strong>rate-limit/cache is echo's</strong>.
+    </div>
+  </nav>
+
+  <main class="stage">
+
+    <!-- VIEW: Brain browser — the six brain/ artifacts rendered + searchable -->
+    <section id="view-brain" class="view active">
+      <div class="toolbar">
+        <input id="brain-q" type="search" placeholder="Search the brain — “PATCH default data loss”, “SSE traps”, “new Map race”…">
+      </div>
+      <div class="brain-layout">
+        <aside class="brain-files" id="brain-files"></aside>
+        <article class="brain-body" id="brain-body">
+          <div class="empty">Pick an artifact, or search above. Click any <span class="pill">P-04</span> /
+          <span class="pill">S-02</span> / <span class="pill">O-07</span> to read its detection + fix.</div>
+        </article>
+      </div>
+    </section>
+
+    <!-- VIEW: Ask the employee — runs turbo brain / turbo explain (read-only) -->
+    <section id="view-ask" class="view">
+      <div class="ask-wrap">
+        <h2 class="serif">Ask turbo</h2>
+        <p class="muted">A read-only question to the employee. Ask a scenario in plain English, or an exact
+          ID (<span class="pill">P-04</span>, <span class="pill">S-08</span>, <span class="pill">O-12</span>).
+          turbo answers from its brain — and tells you when something is <strong>echo's</strong>, not its.</p>
+        <div class="ask-bar">
+          <input id="ask-q" type="search" placeholder="e.g. what does turbo think about Bun for an always-on service?">
+          <button id="ask-go">Ask</button>
+        </div>
+        <div class="ask-chips">
+          <button class="chip" data-q="Bun for an always-on service">Bun always-on?</button>
+          <button class="chip" data-q="PATCH default data loss">PATCH erased fields</button>
+          <button class="chip" data-q="rate limiting cache">rate-limit / cache?</button>
+          <button class="chip" data-q="SSE streaming traps nginx">SSE traps</button>
+          <button class="chip" data-id="P-02">P-02</button>
+          <button class="chip" data-id="S-01">S-01</button>
+        </div>
+        <div id="ask-answer" class="ask-answer"></div>
+      </div>
+    </section>
+
+    <!-- VIEW: Run log — logs/runs.jsonl tail -->
+    <section id="view-runs" class="view">
+      <div class="toolbar"><div class="count" id="runs-count"></div></div>
+      <table class="runs-table">
+        <thead><tr><th>when</th><th>command</th><th>model</th><th>ms</th><th>outcome</th><th>detail</th></tr></thead>
+        <tbody id="runs-body"></tbody>
+      </table>
+    </section>
+
+    <!-- VIEW: Eval scores — the pyramid (green/red, not Likert) -->
+    <section id="view-evals" class="view">
+      <div class="toolbar"><div class="count" id="evals-meta"></div></div>
+      <div id="evals-summary" class="evals-summary"></div>
+      <div id="evals-grid" class="evals-grid"></div>
+    </section>
+
+  </main>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>
