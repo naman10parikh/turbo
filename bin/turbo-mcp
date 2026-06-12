@@ -1,0 +1,4 @@
+#!/usr/bin/env node
+// turbo MCP stdio entry (C13). Thin launcher → the built server at dist/mcp/server.js.
+// Kept as a separate `bin` so `.mcp.json` / a host can spawn `turbo-mcp` directly (stdio transport).
+import("../dist/mcp/server.js");

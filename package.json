@@ -4,12 +4,14 @@
   "description": "turbo — the Energy fleet's backend/runtime domain-expert employee. Scaffolds & audits TS-strict Hono services from OpenAPI. Powered by Energy.",
   "type": "module",
   "bin": {
-    "turbo": "./dist/cli/index.js"
+    "turbo": "./dist/cli/index.js",
+    "turbo-mcp": "./dist/mcp/server.js"
   },
   "main": "./dist/cli/index.js",
   "types": "./dist/cli/index.d.ts",
   "files": [
     "dist/",
+    "bin/",
     "src/generator/baseline/",
     "brain/",
     "eval/fixtures/",
@@ -26,6 +28,8 @@
     "dev": "tsc -p tsconfig.json --watch",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "mcp": "node dist/mcp/server.js",
+    "rsi": "node workflows/rsi.workflow.js --deterministic",
     "prepare": "tsc -p tsconfig.json"
   },
   "keywords": [
@@ -42,6 +46,7 @@
   "license": "MIT",
   "dependencies": {
     "@apidevtools/swagger-parser": "^12.1.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "commander": "^15.0.0"
   },
   "devDependencies": {
