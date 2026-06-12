@@ -1,0 +1,88 @@
+name: acceptance
+# CP123 E23 — THE acceptance test, red-blocking (PLAN §5).
+# turbo api --spec petstore.openapi.json → a typed Hono service that:
+#   tsc --noEmit clean (the law: no `any`) · npm run contract green (OpenAPI conformance + RPC type) ·
+#   turbo audit finds ZERO P-02/P-04 (eval/assert-no-critical-pitfalls.mjs, created by E19, consumed here).
+# Packager split (D-note): the turbo *repo root* is pnpm + pnpm-lock.yaml (matches the inherited ci.yml);
+# the *generated `.accept` tree* is npm + Node 24 (carries its own `contract` script). Both honored below.
+# The E2B sandbox-boot is a SEPARATE job gated behind secrets.E2B_API_KEY — absent → the local `accept`
+# job still gates the merge (Q0/V2: the merge gate does NOT depend on E2B).
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  # ── THE merge gate: a single deterministic codegen run, fully local, library-only ────────────────
+  accept:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      # Build the turbo CLI (repo root = pnpm; the binary is dist/cli/index.js).
+      - name: Build turbo CLI
+        run: |
+          pnpm install --frozen-lockfile || pnpm install
+          pnpm build
+
+      # 1) Generate the service ONCE (pass^k is E19's eval gate, not this codegen path — Q6/§6).
+      - name: turbo api → ./.accept (the acceptance generate)
+        run: node dist/cli/index.js api --spec eval/fixtures/petstore.openapi.json --out ./.accept --json
+
+      # The generated tree is npm + Node 24 (it carries its own `contract` script, guaranteed by B6/B7).
+      - name: Install the generated service (npm)
+        run: cd .accept && npm install --no-audit --no-fund
+
+      # 2) The law: no `any`. Native strip-types wouldn't catch this — a real tsc gate (O-09/P-09).
+      - name: tsc --noEmit (the no-any law)
+        run: cd .accept && npx tsc --noEmit
+
+      # 3) Runtime OpenAPI conformance + the Hono RPC `typeof app` type compile (S-06/S-09).
+      - name: npm run contract (conformance + RPC type)
+        run: cd .accept && npm run contract
+
+      # 4) Zero critical pitfalls — the assert script (E19, SOLE creator) exits non-zero on any P-02/P-04.
+      - name: turbo audit → assert zero P-02/P-04
+        run: node dist/cli/index.js audit ./.accept --json | node eval/assert-no-critical-pitfalls.mjs
+
+      # 5) The eval pyramid CI-blocking set (G1/G3/G4/G5/G7/G13) runs pass^k (k≥3) here — red-blocking.
+      - name: turbo eval (Hamel pyramid, pass^k on the CI-blocking set)
+        run: node dist/cli/index.js eval --json
+
+  # ── The Sandbox/Infra component gate (E22): a LIVE E2B boot. Gated behind the secret. ────────────
+  # Absent secret → this job SKIPs cleanly (rc 0) and the `accept` job above still gates the merge.
+  sandbox-boot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Build turbo CLI
+        run: |
+          pnpm install --frozen-lockfile || pnpm install
+          pnpm build
+
+      # The boot-test SKIPs cleanly when E2B_API_KEY is unset (rc 0), or boots a generated service in
+      # an E2B Firecracker microVM and asserts a live /health → 200 + a torn-down sandbox when it's set.
+      - name: E2B sandbox-boot (live /health → 200; SKIP if no key)
+        env:
+          E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
+        run: node eval/sandbox/boot-test.ts
