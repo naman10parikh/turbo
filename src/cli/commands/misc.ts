@@ -70,12 +70,16 @@ function stub(command: string, owner: string, json: boolean): void {
     ts: new Date().toISOString(),
     detail: `stub → ${owner}`,
   });
+  // Non-fake-green in BOTH paths: an agent calling `turbo <stub> --json` (the agent-native O-13
+  // surface) must get a non-zero exit just like the human-readable path — otherwise a caller doing
+  // `turbo contract --json && proceed` proceeds on an unimplemented feature. Set the code BEFORE the
+  // json early-return so the `--json` branch can't slip out at exit 0.
+  process.exitCode = 2;
   if (json) {
     emitJson({ ok: false, stub: true, command, implementedIn: owner });
     return;
   }
   warn(`turbo ${command}: not yet implemented — lands in ${owner}.`);
-  process.exitCode = 2;
 }
 
 export function runContract(opts: { json: boolean }): void {
