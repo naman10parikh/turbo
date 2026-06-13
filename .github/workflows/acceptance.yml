@@ -109,7 +109,11 @@ jobs:
       - name: Install global Playwright + chromium
         run: |
           npm i -g playwright@1.58.2
-          npx playwright install --with-deps chromium
+          # Call the just-installed global binary DIRECTLY (it's on PATH). `npx playwright install`
+          # treats playwright as not-locally-resolvable and prompts "Ok to proceed? (y)" on stdin,
+          # which never arrives in CI → the job hangs to the 6h timeout (observed: run 27472892147
+          # "cancelled" after a 6h Install step). Direct invocation = pinned version, no prompt.
+          playwright install --with-deps chromium
 
       # run.sh resolves @playwright/test from TURBO_GLOBAL_NM (= the runner's global node_modules), warms
       # the eval cache synchronously, boots the cockpit via playwright.config.ts's webServer, runs the 6
