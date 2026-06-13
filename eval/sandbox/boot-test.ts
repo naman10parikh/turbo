@@ -29,6 +29,26 @@ function cliEntry(): string {
   return join(REPO_ROOT, "dist", "cli", "index.js");
 }
 
+/**
+ * Best-effort: read one key from the repo's gitignored `.env` if it isn't already in the process env.
+ * The secrets manifest (PLAN §8) documents the E2B key living in `.env`, but a bare
+ * `node eval/sandbox/boot-test.ts` does not auto-load it — so without this, the documented path
+ * silently SKIPs instead of booting. No new deps; a minimal `KEY=value` line parse (quotes stripped).
+ */
+function envFromDotenv(key: string): string | undefined {
+  if (process.env[key] && process.env[key]!.trim().length > 0) return process.env[key];
+  try {
+    const raw = readFileSync(join(REPO_ROOT, ".env"), "utf8");
+    for (const line of raw.split("\n")) {
+      const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)$/);
+      if (m && m[1] === key) return m[2].trim().replace(/^["']|["']$/g, "");
+    }
+  } catch {
+    // no .env file — fall through to undefined (clean-skip path handles it)
+  }
+  return undefined;
+}
+
 /** Recursively collect a generated service's source files as {rel, text}, skipping node_modules/dist/.git. */
 function collectFiles(root: string): Array<{ rel: string; text: string }> {
   const out: Array<{ rel: string; text: string }> = [];
@@ -47,7 +67,7 @@ function collectFiles(root: string): Array<{ rel: string; text: string }> {
 }
 
 async function main(): Promise<number> {
-  const apiKey = process.env.E2B_API_KEY;
+  const apiKey = envFromDotenv("E2B_API_KEY");
   if (!apiKey || apiKey.trim().length === 0) {
     console.log("⏭  E2B_API_KEY unset — SKIP the sandbox-boot eval (Q0: the merge gate does not depend on E2B).");
     console.log("   The non-sandbox acceptance path (E23) still gates the merge. To enable: set E2B_API_KEY.");
@@ -82,7 +102,7 @@ async function main(): Promise<number> {
   try {
     // 3) Create the sandbox — measure cold start.
     const t0 = Date.now();
-    sbx = await Sandbox.create({ timeoutMs: 120_000 });
+    sbx = await Sandbox.create({ timeoutMs: 120_000, apiKey });
     const coldMs = Date.now() - t0;
     console.log(`SANDBOX_CREATED id=${sbx.sandboxId} cold_start_ms=${coldMs}`);
 
