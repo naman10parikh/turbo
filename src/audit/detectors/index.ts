@@ -149,7 +149,14 @@ const p10p11: Detector = {
       const text = file.text;
       const usesStream = /streamSSE\s*\(|\bstreamText\s*\(/.test(text);
       if (!usesStream) continue;
-      if (!/X-Accel-Buffering/.test(text)) {
+      // Look for the header being *set* (c.header('X-Accel-Buffering', ...) or an object literal
+      // entry), NOT a bare mention — a comment or string that merely names the header must not mask
+      // the P-10 finding (T-council false-negative). The header value `no` is the fix; we accept any
+      // set form to avoid over-fitting.
+      const setsAccelBuffering =
+        /\bheader\s*\(\s*["'`]X-Accel-Buffering["'`]/i.test(text) ||
+        /["'`]X-Accel-Buffering["'`]\s*:/i.test(text);
+      if (!setsAccelBuffering) {
         findings.push({
           pitfall: "P-10",
           file: file.path,

@@ -30,10 +30,14 @@ export function runStreamDoctor(opts: { file: string; json: boolean }): void {
     return;
   }
 
-  const file: ScanFile = { path: relative(process.cwd(), path), text };
+  // Scan under the ABSOLUTE path so the `file` field an agent gets in --json is unambiguous (a
+  // `relative(cwd, path)` artifact like `../../../tmp/x.ts` is meaningless once the agent joins it to
+  // its own base dir — T-council MINOR). Human-readable output still shows the cwd-relative form.
+  const file: ScanFile = { path, text };
   const sseDetectors = DETECTORS.filter((d) => d.id === "P-10/P-11");
   const traps: Finding[] = [];
   for (const d of sseDetectors) traps.push(...d.detect([file], undefined));
+  const displayPath = relative(process.cwd(), path);
 
   logRun({
     command: "stream-doctor",
@@ -46,27 +50,30 @@ export function runStreamDoctor(opts: { file: string; json: boolean }): void {
   });
 
   if (opts.json) {
+    // Absolute `file` (file.path) so an agent can use it directly without a base-dir join.
     emitJson({ ok: true, file: file.path, traps });
     return;
   }
   if (traps.length === 0) {
-    printOk(`turbo stream-doctor: no SSE traps in ${file.path}`);
+    printOk(`turbo stream-doctor: no SSE traps in ${displayPath}`);
     return;
   }
   for (const t of traps) {
-    info(`[${t.severity.toUpperCase()}] ${t.pitfall}  ${t.file}:${t.line}`);
+    info(`[${t.severity.toUpperCase()}] ${t.pitfall}  ${displayPath}:${t.line}`);
     info(`  ${t.message}`);
   }
 }
 
 /** A shared honest-stub emitter for the commands whose real bodies land in other clusters. */
 function stub(command: string, owner: string, json: boolean): void {
+  // Log `outcome:"stub"` (NOT "ok") — the invocation exits non-zero, so recording it as a success
+  // would skew the cockpit Run-log / RSI telemetry that aggregates `outcome` (T-council MINOR).
   logRun({
     command,
     model: "deterministic",
     duration_ms: 0,
     cost: 0,
-    outcome: "ok",
+    outcome: "stub",
     ts: new Date().toISOString(),
     detail: `stub → ${owner}`,
   });

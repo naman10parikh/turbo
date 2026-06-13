@@ -20,6 +20,8 @@ export interface ApiOptions {
   out: string;
   runtime: "node" | "workers";
   json: boolean;
+  /** Overwrite a non-empty, non-turbo-generated --out dir (off by default — containment). */
+  force?: boolean;
 }
 
 export async function runApi(opts: ApiOptions): Promise<void> {
@@ -27,6 +29,27 @@ export async function runApi(opts: ApiOptions): Promise<void> {
   const specPath = resolve(opts.spec);
   const outDir = resolve(opts.out);
   const serviceName = basename(outDir).replace(/[^a-zA-Z0-9-]/g, "-") || "turbo-service";
+
+  // The generator currently emits a Node entry only (main.ts uses @hono/node-server's serve(); a
+  // Workers target needs `export default app` + wrangler). Rather than emit a Node service and
+  // mislabel it `runtime:"workers"` (the T-council fake-green), reject the unimplemented target with
+  // a typed error so a caller never deploys a Node tree to Workers thinking turbo built one.
+  if (opts.runtime === "workers") {
+    const msg =
+      "turbo api: --runtime workers is not yet implemented (the generator emits a Node entry only). Use --runtime node; a Workers target (export default app + wrangler.toml) is planned.";
+    logRun({
+      command: "api",
+      model: "deterministic",
+      duration_ms: Date.now() - start,
+      cost: 0,
+      outcome: "error",
+      ts: new Date().toISOString(),
+      detail: "rejected --runtime workers (unimplemented)",
+    });
+    if (opts.json) emitJson({ ok: false, error: msg, runtime: "workers", implemented: false });
+    fail(msg);
+    return;
+  }
 
   const parsed = await parseOpenApi(specPath);
   if (isErr(parsed)) {
@@ -45,7 +68,7 @@ export async function runApi(opts: ApiOptions): Promise<void> {
   }
 
   const files = emitService(parsed.value, serviceName);
-  const written = writeTree(outDir, files);
+  const written = writeTree(outDir, files, { force: opts.force });
   if (isErr(written)) {
     logRun({
       command: "api",

@@ -19,6 +19,8 @@ export interface ScaffoldOptions {
   name: string;
   out: string;
   json: boolean;
+  /** Overwrite a non-empty, non-turbo-generated --out dir (off by default — containment). */
+  force?: boolean;
 }
 
 /** The blank baseline: one example "tasks" resource demonstrating GET-list + POST-with-default + PATCH. */
@@ -118,7 +120,7 @@ export async function runScaffold(opts: ScaffoldOptions): Promise<void> {
   const name = opts.name.replace(/[^a-zA-Z0-9-]/g, "-") || "turbo-service";
 
   const files = emitService(baselineIR(name), name);
-  const written = writeTree(outDir, files);
+  const written = writeTree(outDir, files, { force: opts.force });
   if (isErr(written)) {
     logRun({
       command: "scaffold",

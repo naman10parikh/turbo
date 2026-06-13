@@ -179,6 +179,14 @@ async function loadRuns() {
   const body = $("#runs-body");
   $("#runs-count").textContent = res.total ? `${res.total} runs logged · showing newest ${Math.min(res.total, 100)}` : "no runs yet";
   body.innerHTML = "";
+  // Empty-state: a brand-new clone has no logs/runs.jsonl yet — say so instead of a blank table
+  // (T-council first-user MINOR). The colspan matches the 6 columns rendered below.
+  if (!res.runs || res.runs.length === 0) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td class="muted" colspan="6">no runs yet — run a turbo command (e.g. <code>turbo api --spec &lt;spec&gt;</code>) to populate the log.</td>`;
+    body.appendChild(tr);
+    return;
+  }
   for (const r of (res.runs || [])) {
     const tr = document.createElement("tr");
     const ok = r.outcome === "ok";
@@ -194,6 +202,7 @@ async function loadRuns() {
 }
 
 // ---------- view: eval scores ----------
+let evalRetryArmed = false;
 async function loadEvals() {
   const res = await api("/api/eval");
   const meta = $("#evals-meta");
@@ -202,7 +211,18 @@ async function loadEvals() {
   if (!res.ok || !res.result) {
     meta.textContent = "";
     summary.innerHTML = "";
-    grid.innerHTML = `<div class="empty">${esc(res.note || "eval cache not built yet — it warms in the background on serve.")}</div>`;
+    // The cache warms in the background on `serve` (~20s for the pyramid). Tell the user the wait and
+    // auto-retry ONCE so the grid populates without a manual refresh (T-council first-user MINOR).
+    grid.innerHTML =
+      `<div class="empty">${esc(res.note || "warming the eval cache — the pyramid takes ~20s on first serve. This refreshes automatically; or run ")}` +
+      `<code>turbo eval</code> in the repo.</div>`;
+    if (!evalRetryArmed) {
+      evalRetryArmed = true;
+      setTimeout(() => {
+        evalRetryArmed = false;
+        if ($("#view-evals").classList.contains("active")) loadEvals();
+      }, 22000);
+    }
     return;
   }
   const r = res.result;

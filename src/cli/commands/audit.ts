@@ -98,18 +98,27 @@ export function runAudit(opts: AuditOptions): void {
     findings.push(...detector.detect(files, pkg));
   }
 
+  // A critical finding is a failed audit. Compute this ONCE and use it for both the rc/`ok` field and
+  // the run-log outcome, so the `--json` path can't slip out at exit 0 (the no-fake-green discipline —
+  // an agent doing `turbo audit --json && proceed` must NOT proceed on a critical data-loss finding).
+  const criticals = findings.filter((f) => f.severity === "critical");
+  const hasCritical = criticals.length > 0;
+
   logRun({
     command: "audit",
     model: "deterministic",
     duration_ms: Date.now() - start,
     cost: 0,
-    outcome: "ok",
+    outcome: hasCritical ? "error" : "ok",
     ts: new Date().toISOString(),
-    detail: `${root}: ${findings.length} findings`,
+    detail: `${root}: ${findings.length} findings${hasCritical ? ` (${criticals.length} critical)` : ""}`,
   });
 
   if (opts.json) {
-    emitJson({ ok: true, dir: root, findings });
+    // `ok` reflects the gate (false on any critical finding) AND the rc is set non-zero — an agent can
+    // branch on either the body or the exit code. Findings are always returned for inspection.
+    emitJson({ ok: !hasCritical, dir: root, findings });
+    if (hasCritical) process.exitCode = 1;
     return;
   }
 
@@ -123,7 +132,7 @@ export function runAudit(opts: AuditOptions): void {
     info(`  ${f.message}`);
   }
   // A critical finding sets a non-zero exit (an agent can gate on rc). Informational ones don't.
-  if (findings.some((f) => f.severity === "critical")) {
-    fail(`turbo audit: ${findings.filter((f) => f.severity === "critical").length} critical pitfall(s)`);
+  if (hasCritical) {
+    fail(`turbo audit: ${criticals.length} critical pitfall(s)`);
   }
 }

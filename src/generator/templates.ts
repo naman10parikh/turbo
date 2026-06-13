@@ -130,6 +130,9 @@ export function packageJsonSource(serviceName: string): string {
     version: "0.1.0",
     private: true,
     type: "module",
+    // Self-identifying marker so `turbo api/scaffold` can safely RE-generate into its own output dir
+    // without clobbering a foreign directory (the write-tree containment gate keys on this).
+    _generatedBy: "turbo",
     engines: { node: "24.x" },
     scripts: {
       build: "tsc -p tsconfig.json",
@@ -150,7 +153,10 @@ export function packageJsonSource(serviceName: string): string {
     devDependencies: {
       "@types/node": "^24.0.0",
       typescript: "^5.6.0",
-      vitest: "^2.0.0",
+      // vitest ^4: vitest <=3.2.5 pulls a vite/esbuild chain with a high/critical dev-only advisory
+      // (GHSA-67mh-4wv8-2f99). 4.x clears it → a brand-new user's first `npm install && npm audit`
+      // on the generated service reports 0 vulnerabilities (T-council first-user finding).
+      vitest: "^4.0.0",
     },
   };
   return JSON.stringify(pkg, null, 2) + "\n";

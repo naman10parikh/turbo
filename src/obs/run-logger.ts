@@ -15,7 +15,8 @@ export interface RunRecord {
   readonly model: string;
   readonly duration_ms: number;
   readonly cost: number;
-  readonly outcome: "ok" | "error";
+  /** "stub" = an honest unimplemented-command invocation (exits non-zero) — not a success, not an error. */
+  readonly outcome: "ok" | "error" | "stub";
   readonly ts: string;
   readonly detail?: string;
 }

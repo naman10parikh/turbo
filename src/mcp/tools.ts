@@ -63,7 +63,7 @@ export const TURBO_TOOLS: readonly TurboTool[] = [
       type: "object",
       properties: {
         name: { type: "string", description: "service name (default turbo-service)" },
-        runtime: { type: "string", enum: ["node", "workers"], description: "target runtime (default node)" },
+        runtime: { type: "string", enum: ["node"], description: "target runtime (node only; workers planned)" },
         out: { type: "string", description: "output directory (default ./turbo-service)" },
       },
       additionalProperties: false,
@@ -90,7 +90,7 @@ export const TURBO_TOOLS: readonly TurboTool[] = [
           type: "string",
           description: "path to an OpenAPI spec file (JSON/YAML). Inline spec objects are not supported over stdio — pass a path.",
         },
-        runtime: { type: "string", enum: ["node", "workers"], description: "target runtime (default node)" },
+        runtime: { type: "string", enum: ["node"], description: "target runtime (node only; workers planned — `turbo api --runtime workers` rejects until implemented)" },
         out: { type: "string", description: "output directory (default ./turbo-service)" },
       },
       required: ["spec"],
