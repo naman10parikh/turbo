@@ -66,6 +66,30 @@ function loadPkg(root: string): Record<string, unknown> | undefined {
 export function runAudit(opts: AuditOptions): void {
   const start = Date.now();
   const root = resolve(opts.dir);
+
+  // Validate the target exists and is a directory BEFORE scanning — otherwise a typo'd path
+  // walks an empty tree and the detectors fabricate findings (e.g. P-09 firing on a phantom
+  // missing package.json). A non-existent path is a usage error, not a clean audit.
+  let rootStat;
+  try {
+    rootStat = statSync(root);
+  } catch {
+    const msg = `turbo audit: directory not found: ${root}`;
+    if (opts.json) {
+      emitJson({ ok: false, dir: root, error: msg, findings: [] });
+    }
+    fail(msg);
+    return;
+  }
+  if (!rootStat.isDirectory()) {
+    const msg = `turbo audit: not a directory: ${root}`;
+    if (opts.json) {
+      emitJson({ ok: false, dir: root, error: msg, findings: [] });
+    }
+    fail(msg);
+    return;
+  }
+
   const files = collectFiles(root);
   const pkg = loadPkg(root);
 
