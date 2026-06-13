@@ -82,3 +82,51 @@ jobs:
         env:
           E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
         run: node eval/sandbox/boot-test.ts
+
+  # ── The E2E (Playwright) pyramid layer — RED-BLOCKING (PLAN §9: "Red-blocking in CI: … E2E"). ──────
+  # Closes the G29 CHAIRMAN-CHECKLIST follow-up ("CI-attachment left to Wave-V"). Playwright is NOT a
+  # turbo dependency (zero-dep backend tool, PLAN §7) — the runner installs the global `playwright` and
+  # `tests/e2e/run.sh` shims it into node_modules via TURBO_GLOBAL_NM (the exact local pattern). Drives
+  # the cockpit (4 views) + the full CLI acceptance flow from a clean dir; needs no secrets.
+  cockpit-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      # Build the turbo CLI (the cockpit server + the CLI-acceptance spec both shell out to dist/).
+      - name: Build turbo CLI
+        run: |
+          pnpm install --frozen-lockfile || pnpm install
+          pnpm build
+
+      # Global Playwright (pinned to the version run.sh's shim declares) — NOT a turbo dep (PLAN §7).
+      - name: Install global Playwright + chromium
+        run: |
+          npm i -g playwright@1.58.2
+          npx playwright install --with-deps chromium
+
+      # run.sh resolves @playwright/test from TURBO_GLOBAL_NM (= the runner's global node_modules), warms
+      # the eval cache synchronously, boots the cockpit via playwright.config.ts's webServer, runs the 6
+      # specs. Red-blocking: a failing cockpit/CLI-acceptance spec fails this job.
+      - name: Playwright E2E (cockpit 4 views + CLI acceptance flow)
+        run: |
+          # Resolve the runner's global node_modules deterministically so run.sh's shim finds Playwright.
+          TURBO_GLOBAL_NM="$(npm root -g)"
+          export TURBO_GLOBAL_NM
+          echo "TURBO_GLOBAL_NM=$TURBO_GLOBAL_NM"
+          CI=1 bash tests/e2e/run.sh
+
+      # Upload the chairman's acceptance + cockpit screenshots as a CI artifact (evidence trail).
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: turbo-cockpit-screenshots
+          path: content/screenshots/
+          if-no-files-found: ignore
