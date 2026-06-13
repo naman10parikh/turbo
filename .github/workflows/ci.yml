@@ -38,8 +38,6 @@ jobs:
           if [ -f package.json ]; then echo "armed=true" >> "$GITHUB_OUTPUT"; else echo "armed=false" >> "$GITHUB_OUTPUT"; fi
       - uses: pnpm/action-setup@v4
         if: steps.rt.outputs.armed == 'true'
-        with:
-          version: 9
       - uses: actions/setup-node@v4
         if: steps.rt.outputs.armed == 'true'
         with:
