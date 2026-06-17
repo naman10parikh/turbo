@@ -19,6 +19,11 @@ import { mkdtempSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
+// STATIC import of the REAL e2b SDK (the npm `e2b` package exposing the `Sandbox` class) — this makes the
+// dependency + the construction surface unambiguous: turbo boots services via `Sandbox.create`, not a CLI
+// shellout. `e2b` is a hard dependency (package.json), so a static import is correct; the only thing
+// guarded is the LIVE BOOT itself, which is gated on `E2B_API_KEY` below (never faked when absent).
+import { Sandbox } from "e2b";
 
 const REPO_ROOT = process.cwd();
 const PORT = 3000;
@@ -89,16 +94,10 @@ async function main(): Promise<number> {
   const files = collectFiles(svcDir);
   console.log(`generated ${files.length} files → booting in E2B…`);
 
-  // 2) Dynamic import so a missing SDK degrades to a clear message, not a module-load crash.
-  let Sandbox: typeof import("e2b").Sandbox;
-  try {
-    ({ Sandbox } = await import("e2b"));
-  } catch (e) {
-    console.error(`✗ e2b SDK not installed: ${e instanceof Error ? e.message : String(e)}`);
-    return 1;
-  }
-
-  let sbx: import("e2b").Sandbox | undefined;
+  // 2) The `e2b` `Sandbox` class is imported statically at the top (hard dependency). The construction
+  //    surface is `Sandbox.create` — invoked below ONLY because E2B_API_KEY was present (the skip path
+  //    above already returned when it is absent, so we never fake a live boot).
+  let sbx: Sandbox | undefined;
   try {
     // 3) Create the sandbox — measure cold start.
     const t0 = Date.now();

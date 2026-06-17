@@ -52,7 +52,8 @@ if (!existsSync(join(ROOT, "dist", "cli", "index.js"))) {
 
 const suites = [];
 // 1) Smoke tests (cold-runnable). build-loop gets --fast for CI speed (static ordering + typed-halt).
-for (const file of findSmoke(join(ROOT, "src"))) {
+//    Scanned dirs: `src/` (the bulk) + `eval/` (the sandbox wiring smoke — cold-runnable, no live key).
+for (const file of [...findSmoke(join(ROOT, "src")), ...findSmoke(join(ROOT, "eval"))]) {
   const args = file.endsWith("build-loop.smoke.mjs") ? [file, "--fast"] : [file];
   suites.push([`smoke: ${file.replace(ROOT + "/", "")}`, args]);
 }
