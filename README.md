@@ -153,6 +153,26 @@ employees consume; it does not own their pipelines (frontend / mobile / DB schem
 deploy+CI).
 
 <!-- fleet:anatomy:start -->
+## What it is made of
+
+Every project in this fleet is graded on the same 11 harness components and on self-improvement. Each mark is backed by a file you can open.
+
+| Component | Grade | Where |
+| --- | --- | --- |
+| Identity | ✅ | identity/SOUL.md:9 |
+| Memory | ✅ | src/cli/commands/brain.ts:18 |
+| Skills | ✅ | skills/audit-serverless-state/SKILL.md:1 |
+| Tools/CLIs | ✅ | package.json:7 |
+| Hooks | ✅ | .claude/settings.json:6 |
+| Sub-agents | ✅ | .claude/agents/runtime-safety-auditor.md:2 |
+| MCPs | ✅ | src/mcp/server.ts:79 |
+| Dispatch | ✅ | src/dispatch/build-loop.ts:90 |
+| Evals | ✅ | .github/workflows/acceptance.yml:59 |
+| Observability | ✅ | src/obs/run-logger.ts:26 |
+| Sandbox/Infra | ✅ | eval/sandbox/boot-test.ts:104 |
+| RSI / open-endedness | ✅ | dsip.json:27 |
+
+✅ real and tested · 🟡 partial, with the reason in the row · ❌ absent
 <!-- fleet:anatomy:end -->
 
 ## More
