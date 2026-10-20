@@ -8,10 +8,10 @@
 
 | Check | Frequency | Action on anomaly |
 | --- | --- | --- |
-| **Version-drift** (`turbo check` — `npm view` vs `brain/TOOL-MATRIX.md` pins) | nightly (RSI loop) | flag drift / newly-EOL runtime (Node-20 class) / Hono security floor (<4.12.16) → propose a gated pin-bump diff |
-| **Eval pyramid** (`turbo eval` — L1 assertions + L2 behavior) | nightly + every CI run | if a CI-blocking task (G1/G3/G4/G5/G7/G13) goes red → block; git snap-back at component/repo |
+| **Version-drift** (`turbo check` — `npm view` vs `brain/TOOL-MATRIX.md` pins) | weekly, Mondays 09:00 UTC (RSI loop) | flag drift / newly-EOL runtime (Node-20 class) / Hono security floor (<4.12.16) → write a pin-bump proposal, kept as a run artifact for review (never applied) |
+| **Eval pyramid** (`turbo eval` — L1 assertions + L2 behavior) | weekly (RSI loop) + every CI run | if a CI-blocking task (G1/G3/G4/G5/G7/G13) goes red → block; git snap-back at skill/employee |
 | **Acceptance test** (`turbo api` on the Petstore fixture) | every push/PR (`acceptance.yml`) | if `tsc --noEmit`/contract/audit fails → red-block the merge |
-| **Brain freshness** (`refresh-brain` — re-read TOOL-MATRIX pins) | nightly (RSI loop) | if an ecosystem-watch signal lands (new Hono CVE, Zod major, Bun RED→GREEN flip) → Claude-half drafts a brain update (when token set) |
+| **Brain freshness** (`refresh-brain` — re-read TOOL-MATRIX pins) | weekly (RSI loop) | if an ecosystem-watch signal lands (new Hono CVE, Zod major, Bun RED→GREEN flip) → Claude-half drafts a brain update (when token set) |
 
 ## Health indicators
 

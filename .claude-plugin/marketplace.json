@@ -1,0 +1,14 @@
+{
+  "name": "turbo",
+  "owner": {
+    "name": "Naman Parikh",
+    "url": "https://github.com/naman10parikh"
+  },
+  "plugins": [
+    {
+      "name": "turbo",
+      "source": "./",
+      "description": "Turns an OpenAPI spec into a strict TypeScript Hono service and audits it for production bugs."
+    }
+  ]
+}

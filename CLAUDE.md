@@ -1,3 +1,5 @@
+@AGENTS.md
+
 # turbo — Backend / Runtime Domain-Expert Employee
 
 > The Energy fleet's backend engineer. A coding agent's senior backend/runtime expert — consumed over
@@ -60,6 +62,14 @@ exposes routes those employees consume; it does not own their pipelines.
   packaged `runtime-safety-auditor`.
 - **G** cockpit: stdlib server + vanilla-JS SPA, 4 views, warm-black design; Playwright E2E.
 
+## MCP servers
+
+The root `.mcp.json` is what a stranger and the plugin load: turbo's own server, started from GitHub with
+`npx -y -p github:naman10parikh/turbo turbo-mcp`, plus context7; neither needs a secret. To work on turbo itself,
+`claude --mcp-config .mcp.dev.json` also loads the local build (`turbo-local`, `node ./dist/mcp/server.js`, after
+`pnpm build`), GitHub (needs `GITHUB_PERSONAL_ACCESS_TOKEN`), memory (`memory/MEMORY.md`) and obsidian (`brain/`).
+`node scripts/check-mcp-env-refs.mjs` asserts neither file holds a literal secret.
+
 ## How you operate
 
 Act, don't ask. Karpathy discipline on edits (Think-Before-Coding · Simplicity-First · Surgical-Changes ·
@@ -69,4 +79,4 @@ flipping it done. Inherited rules in `.claude/rules/` are glob-loaded every sess
 ## Commit convention
 
 `feat(turbo): …` / `fix(turbo): …` / `docs(turbo): …` — conventional commits so git snap-back works at
-component and repo granularity. Co-Authored-By trailer on every commit.
+skill and employee granularity (`dsip.json`). Co-Authored-By trailer on every commit.

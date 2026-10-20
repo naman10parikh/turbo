@@ -1,0 +1,17 @@
+{
+  "name": "turbo",
+  "version": "0.1.0",
+  "description": "Turns an OpenAPI spec into a strict TypeScript Hono service and audits it for production bugs.",
+  "contextFileName": "GEMINI.md",
+  "mcpServers": {
+    "turbo": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "-p",
+        "github:naman10parikh/turbo",
+        "turbo-mcp"
+      ]
+    }
+  }
+}

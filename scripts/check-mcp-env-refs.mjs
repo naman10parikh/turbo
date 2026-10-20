@@ -18,7 +18,7 @@
  *
  * Exit 0 = clean; non-zero = a violation (printed). Run: node scripts/check-mcp-env-refs.mjs
  */
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -49,46 +49,55 @@ function fail(msg) {
   process.exit(1);
 }
 
-let raw;
-try {
-  raw = readFileSync(mcpPath, "utf8");
-} catch (e) {
-  fail(`cannot read .mcp.json: ${e instanceof Error ? e.message : String(e)}`);
-}
+/** Check one MCP config file; the root .mcp.json must also carry the OWN turbo server. */
+function checkFile(path, label, requireTurbo) {
+  let raw;
+  try {
+    raw = readFileSync(path, "utf8");
+  } catch (e) {
+    fail(`cannot read ${label}: ${e instanceof Error ? e.message : String(e)}`);
+  }
 
-// 1) No real-key prefix anywhere in the raw file.
-if (REAL_KEY_PREFIX.test(raw)) {
-  fail(`a real-key prefix (sk-ant-/ghp_/gho_/sk_live_/xox*-/AKIA…) appears literally in .mcp.json`);
-}
+  // 1) No real-key prefix anywhere in the raw file.
+  if (REAL_KEY_PREFIX.test(raw)) {
+    fail(`a real-key prefix (sk-ant-/ghp_/gho_/sk_live_/xox*-/AKIA…) appears literally in ${label}`);
+  }
 
-let cfg;
-try {
-  cfg = JSON.parse(raw);
-} catch (e) {
-  fail(`.mcp.json is not valid JSON: ${e instanceof Error ? e.message : String(e)}`);
-}
+  let cfg;
+  try {
+    cfg = JSON.parse(raw);
+  } catch (e) {
+    fail(`${label} is not valid JSON: ${e instanceof Error ? e.message : String(e)}`);
+  }
 
-const servers = cfg.mcpServers ?? {};
-if (!servers.turbo) fail("`.mcp.json` is missing the OWN `turbo` server entry (C14)");
+  const servers = cfg.mcpServers ?? {};
+  if (requireTurbo && !servers.turbo) fail("`.mcp.json` is missing the OWN `turbo` server entry (C14)");
 
-// 2) Every env string value is a ref or a safe config literal.
-const violations = [];
-for (const [name, server] of Object.entries(servers)) {
-  const env = server?.env;
-  if (!env || typeof env !== "object") continue;
-  for (const [key, value] of Object.entries(env)) {
-    if (typeof value !== "string") continue;
-    if (!isSafeConfigLiteral(value)) {
-      violations.push(`${name}.env.${key} is a literal that must be a \${...} ref (looks secret-bearing)`);
+  // 2) Every env string value is a ref or a safe config literal.
+  const violations = [];
+  for (const [name, server] of Object.entries(servers)) {
+    const env = server?.env;
+    if (!env || typeof env !== "object") continue;
+    for (const [key, value] of Object.entries(env)) {
+      if (typeof value !== "string") continue;
+      if (!isSafeConfigLiteral(value)) {
+        violations.push(`${name}.env.${key} is a literal that must be a \${...} ref (looks secret-bearing)`);
+      }
     }
   }
+
+  if (violations.length > 0) {
+    for (const v of violations) process.stderr.write(`  - ${v}\n`);
+    fail(`${violations.length} env value(s) in ${label} hardcode a potential secret — use \${...} refs`);
+  }
+  return Object.keys(servers).length;
 }
 
-if (violations.length > 0) {
-  for (const v of violations) process.stderr.write(`  - ${v}\n`);
-  fail(`${violations.length} env value(s) hardcode a potential secret — use \${...} refs`);
-}
+const servers = { length: checkFile(mcpPath, ".mcp.json", true) };
+// The developer config (secret-bearing servers live here since CP158) gets the same check when present.
+const devPath = join(here, "..", ".mcp.dev.json");
+if (existsSync(devPath)) servers.length += checkFile(devPath, ".mcp.dev.json", false);
 
 process.stdout.write(
-  `✓ check-mcp-env-refs: turbo server present; no real-key prefixes; all env values are \${...} refs or safe config literals (${Object.keys(servers).length} servers)\n`,
+  `✓ check-mcp-env-refs: turbo server present; no real-key prefixes; all env values are \${...} refs or safe config literals (${servers.length} servers across .mcp.json and .mcp.dev.json)\n`,
 );

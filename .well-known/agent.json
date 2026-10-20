@@ -2,6 +2,7 @@
   "protocolVersion": "1.0",
   "name": "turbo",
   "description": "The Energy fleet's backend / runtime domain-expert employee. Scaffolds and audits TS-strict Hono services from an OpenAPI spec — Zod boundaries at every route, a dedicated no-default PATCH schema, typed Result<T,E> errors, SSE streaming done safely, contract-tested routes. Designs the racy cross-request-state class of bug out by construction. Owns API/runtime only; rate-limit/cache is echo's seam. Powered by Energy.",
+  "url": "https://github.com/naman10parikh/turbo",
   "version": "0.1.0",
   "provider": {
     "organization": "Energy",
@@ -13,7 +14,7 @@
     { "type": "mcp", "command": "node", "args": ["dist/mcp/server.js"], "transport": "stdio", "note": "the turbo MCP server (turbo-mcp) — default transport" },
     { "type": "http", "url": "http://localhost:7790", "note": "documented dual-mode: a hosted @hono/mcp Streamable-HTTP variant serving the same 8 tools" }
   ],
-  "capabilities": ["scaffold", "gen", "audit", "check", "stream-doctor", "brain", "explain"],
+  "capabilities": { "streaming": false, "pushNotifications": false },
   "plannedCapabilities": ["contract", "migrate-plan"],
   "defaultInputModes": ["text/plain", "application/json"],
   "defaultOutputModes": ["text/plain", "application/json"],
@@ -48,6 +49,13 @@
       "description": "Audit an SSE/streaming route file for the traps that bite every deploy: missing 3rd-arg error handler, missing X-Accel-Buffering:no, no while(!stream.aborted) abort check. Maps to `turbo stream-doctor`.",
       "tags": ["backend", "sse", "streaming"],
       "examples": ["Check my SSE route for the nginx-buffering and onError traps."]
+    },
+    {
+      "id": "check_versions",
+      "name": "Check versions and the security floor",
+      "description": "Version-drift oracle: stale pins, the Hono security floor, EOL runtimes. Offline-safe. Maps to `turbo check`.",
+      "tags": ["backend", "versions", "security"],
+      "examples": ["Is this service on a Hono version with known security fixes?"]
     },
     {
       "id": "search_brain",

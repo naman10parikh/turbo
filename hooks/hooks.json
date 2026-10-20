@@ -1,0 +1,25 @@
+{
+  "description": "turbo's plugin hooks. Before a Bash git commit in a TypeScript project, tsc --noEmit must pass (type-stripping is not type-checking). Before a .ts or .tsx write, block a module-level Map or Set cache under app/api/** (it leaks state between requests on serverless hosts) and a defaulted Zod schema reused for PATCH (it resets omitted fields). The gate log goes to a temp file, never into your project.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "TURBO_GATE_LOG=\"${TMPDIR:-/tmp}/turbo-gate.log\" bash \"${CLAUDE_PLUGIN_ROOT}/.claude/hooks/tsc-gate.sh\""
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "TURBO_GATE_LOG=\"${TMPDIR:-/tmp}/turbo-gate.log\" bash \"${CLAUDE_PLUGIN_ROOT}/.claude/hooks/map-patch-grep-gate.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -8,6 +8,17 @@
 > One-line stack: **Hono ≥4.12.25 · Node 24 LTS (floor 22) · Zod 4.4 · `@hono/zod-openapi` 1.x · Result<T,E> ·
 > SSE · Bun for CLIs/tests · ship Vercel-Node, promote latency-critical to Workers.** Powered by Energy.
 
+## Install in one step
+
+```bash
+npx -y -p github:naman10parikh/turbo turbo --help          # the CLI
+npx -y -p github:naman10parikh/turbo turbo-mcp             # the MCP server (stdio)
+claude mcp add --transport stdio turbo -- npx -y -p github:naman10parikh/turbo turbo-mcp
+```
+
+In Claude Code, `/plugin install turbo --marketplace naman10parikh/turbo` brings the 5 skills, the two personas,
+the two law gates (the `tsc --noEmit` commit gate and the `new Map()`/PATCH write gate) and the MCP server.
+
 ## What turbo does
 
 turbo owns TS-strict backend services: runtime+version selection, HTTP service structure (Hono),
@@ -38,7 +49,8 @@ route, a dedicated no-default PATCH schema, `/openapi.json` + Scalar, `/health`,
 
 ## The MCP server (turbo's OWN — 8 tools)
 
-turbo ships its own MCP server (registered in `.mcp.json` as `turbo`). **Default transport = stdio**
+turbo ships its own MCP server (bin `turbo-mcp`; the root `.mcp.json` starts it straight from GitHub as `turbo`,
+and `.mcp.dev.json` starts the local build). **Default transport = stdio**
 (a CLI-wrapper — each tool shells out to the `turbo` CLI with `--json`, so the tools can never drift from
 the gated CLI behavior). A hosted **`@hono/mcp` Streamable-HTTP** variant is the documented dual-mode (same
 `TURBO_TOOLS` list, served over HTTP). Start it via `node dist/mcp/server.js` (or `turbo-mcp`). An MCP
@@ -55,7 +67,8 @@ the gated CLI behavior). A hosted **`@hono/mcp` Streamable-HTTP** variant is the
 | `explain_pitfall` | `turbo explain` | `{ id }` → `{ detection, fix, source }` |
 | `search_brain` | `turbo brain` | `{ query }` → ranked hits |
 
-No live keys in `.mcp.json` — env refs only (the stdio wrapper inherits the process env for `turbo check`).
+No live keys in `.mcp.json` or `.mcp.dev.json` — env refs only, asserted by `node scripts/check-mcp-env-refs.mjs`
+(the stdio wrapper inherits the process env for `turbo check`).
 
 ## Sub-agents (flat, two distinct scopes)
 
@@ -98,7 +111,7 @@ Both declare an explicit `model: opus` (no bare-default model routing).
 ## Browser / computer-use = N/A
 
 turbo is a **server** employee, not a web-operator. It scaffolds and audits services; it does not drive a
-browser. The "if it touches the web, wire a browser tool" clause does not bind turbo (HARNESS-OVERRIDES §4).
+browser. The "if it touches the web, wire a browser tool" clause of the harness checklist does not bind turbo.
 
 ## Where to look next
 

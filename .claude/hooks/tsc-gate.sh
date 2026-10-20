@@ -16,7 +16,8 @@
 set -uo pipefail
 
 REPO_DIR="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
-GATE_LOG="$REPO_DIR/.claude/hooks/gate.log"
+# TURBO_GATE_LOG lets the plugin keep its log out of the open project (hooks/hooks.json sets it).
+GATE_LOG="${TURBO_GATE_LOG:-$REPO_DIR/.claude/hooks/gate.log}"
 TS="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 
 # Read the hook payload from stdin (JSON). Fall back to env for manual testing.
