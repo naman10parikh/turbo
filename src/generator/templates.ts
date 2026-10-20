@@ -137,7 +137,9 @@ export function packageJsonSource(serviceName: string): string {
     scripts: {
       build: "tsc -p tsconfig.json",
       typecheck: "tsc -p tsconfig.json --noEmit",
-      start: "node src/main.ts",
+      // The sources import `.js` names that exist only after a build, so start runs the built entry.
+      prestart: "npm run build",
+      start: "node dist/src/main.js",
       test: "vitest run",
       contract: "vitest run",
     },

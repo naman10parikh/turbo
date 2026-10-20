@@ -11,8 +11,7 @@
   "documentationUrl": "https://github.com/naman10parikh/turbo/blob/main/AGENTS.md",
   "endpoint": "stdio:node dist/mcp/server.js",
   "transports": [
-    { "type": "mcp", "command": "node", "args": ["dist/mcp/server.js"], "transport": "stdio", "note": "the turbo MCP server (turbo-mcp) — default transport" },
-    { "type": "http", "url": "http://localhost:7790", "note": "documented dual-mode: a hosted @hono/mcp Streamable-HTTP variant serving the same 8 tools" }
+    { "type": "mcp", "command": "node", "args": ["dist/mcp/server.js"], "transport": "stdio", "note": "the turbo MCP server (turbo-mcp) — default transport" }
   ],
   "capabilities": { "streaming": false, "pushNotifications": false },
   "plannedCapabilities": ["contract", "migrate-plan"],

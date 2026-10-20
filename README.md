@@ -139,7 +139,7 @@ Its acceptance test is one command, `turbo api --spec petstore.openapi.json --ou
 turbo ships **its own** MCP server (`turbo-mcp`) exposing the same operations as 8 JSON-RPC tools:
 `scaffold_service` · `gen_from_openapi` · `audit_service` · `check_versions` · `contract_test` ·
 `stream_doctor` · `explain_pitfall` · `search_brain`. Default transport is stdio
-(`node dist/mcp/server.js`); a hosted `@hono/mcp` Streamable-HTTP variant serves the same 8 tools. The root
+(`node dist/mcp/server.js`); a hosted Streamable-HTTP version is planned, not built yet. The root
 [`.mcp.json`](.mcp.json) starts it from GitHub, and the A2A card is at [`.well-known/agent.json`](.well-known/agent.json).
 
 **The brain.**

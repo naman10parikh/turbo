@@ -52,8 +52,8 @@ route, a dedicated no-default PATCH schema, `/openapi.json` + Scalar, `/health`,
 turbo ships its own MCP server (bin `turbo-mcp`; the root `.mcp.json` starts it straight from GitHub as `turbo`,
 and `.mcp.dev.json` starts the local build). **Default transport = stdio**
 (a CLI-wrapper — each tool shells out to the `turbo` CLI with `--json`, so the tools can never drift from
-the gated CLI behavior). A hosted **`@hono/mcp` Streamable-HTTP** variant is the documented dual-mode (same
-`TURBO_TOOLS` list, served over HTTP). Start it via `node dist/mcp/server.js` (or `turbo-mcp`). An MCP
+the gated CLI behavior). A hosted **`@hono/mcp` Streamable-HTTP** variant is planned, not built yet (it would serve the same
+`TURBO_TOOLS` list over HTTP). Start it via `node dist/mcp/server.js` (or `turbo-mcp`). An MCP
 `tools/list` JSON-RPC call returns these 8 names:
 
 | Tool | Maps to | Arg sketch |
