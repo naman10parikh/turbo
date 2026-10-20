@@ -1,12 +1,14 @@
 # turbo
 
-> The Energy fleet's **backend / runtime** domain-expert employee — a senior backend engineer that scaffolds
-> and audits TS-strict Hono services, reads the asterisk on every "this is solved now" claim, and designs the
-> racy-state class of bug out by construction. A tool-employee operated by coding agents (CLI + MCP) and
-> watched by the chairman (the local cockpit). Powered by Energy.
+> Turns an OpenAPI spec into a strict TypeScript Hono service and audits it for production bugs: an agent employee for the backend.
+
+The Energy fleet's **backend / runtime** domain-expert employee: a senior backend engineer that scaffolds and audits
+TS-strict Hono services, reads the asterisk on every "this is solved now" claim, and designs the racy-state class of
+bug out by construction. A tool-employee operated by coding agents (CLI + MCP) and watched by a person through the
+local cockpit. Powered by Energy.
 
 This is the agent-readable map of turbo's docs and surfaces. **Read `AGENTS.md` first** for how to invoke
-every tool, the hard boundary, and the NOT-list. Paths are repo-relative to `~/turbo`.
+every tool, the hard boundary, and the NOT-list. Paths are relative to the repository root.
 
 **One-line default stack:** Hono ≥4.12.25 · Node 24 LTS (floor 22) · Zod 4.4 · `@hono/zod-openapi` 1.x ·
 Result<T,E> · SSE · Bun for CLIs/tests · ship Vercel-Node, promote latency-critical to Cloudflare Workers.
@@ -14,12 +16,16 @@ Result<T,E> · SSE · Bun for CLIs/tests · ship Vercel-Node, promote latency-cr
 ## Start here
 - [AGENTS.md](./AGENTS.md): What turbo does, how to invoke every CLI/MCP tool, the boundary, the NOT-list.
 - [CLAUDE.md](./CLAUDE.md): Claude Code operating doc for this repo (the voice + the energy law + cluster order).
-- [GOAL.md](./GOAL.md): The North Star for this harness.
+- [GEMINI.md](./GEMINI.md): Gemini CLI's context file; it imports AGENTS.md.
+- [README.md](./README.md): what turbo is, the one-step install for every coding agent, the quick start.
 
 ## Identity
 - [identity/SOUL.md](./identity/SOUL.md): Who turbo is — Identity → Personality → Boundaries.
 - [identity/BRAND.md](./identity/BRAND.md): Name rationale ("turbo = the boost that makes a backend quick"), tagline, design tokens.
 - [.well-known/agent.json](./.well-known/agent.json): A2A agent card (name / description / endpoint / capabilities).
+- [identity/HEARTBEAT.md](./identity/HEARTBEAT.md): what turbo checks on its own, how often, and the action on an anomaly.
+- [identity/MEMORY.md](./identity/MEMORY.md): the bootstrap facts (under 2,000 tokens).
+- [memory/LEARNINGS.md](./memory/LEARNINGS.md): corrections that became rules.
 
 ## Tools — the `turbo` CLI (Bash-invokable, `--json` on data commands)
 - `turbo api --spec <openapi> [--out <dir>] [--runtime node|workers] [--json]` — **THE acceptance test:** OpenAPI → typed Hono service, contract tests green.
@@ -34,7 +40,8 @@ Result<T,E> · SSE · Bun for CLIs/tests · ship Vercel-Node, promote latency-cr
 - `turbo eval [--level 1|2|3]` — run the eval pyramid (G1–G13).
 
 ## MCP server (turbo's OWN — 8 tools)
-- [.mcp.json](./.mcp.json): the `turbo` server entry (env-ref keys only — no literal secrets).
+- [src/mcp/server.ts](./src/mcp/server.ts): the server; its bin is `turbo-mcp`. Start it with `npx -y -p github:naman10parikh/turbo turbo-mcp`.
+- [.mcp.json](./.mcp.json): starts the `turbo` server from GitHub (no secrets); [.mcp.dev.json](./.mcp.dev.json) starts the local build and the developer servers (env refs only).
 - **Endpoint / transport:** default **stdio** — `node dist/mcp/server.js` (or the `turbo-mcp` bin). Each tool
   shells out to the `turbo` CLI with `--json`. A hosted **`@hono/mcp` Streamable-HTTP** variant is the
   documented dual-mode (same tool list over HTTP).
@@ -64,7 +71,8 @@ Result<T,E> · SSE · Bun for CLIs/tests · ship Vercel-Node, promote latency-cr
 - [contract-reviewer](./.claude/agents/contract-reviewer.md): the contract-drift class — S-06, S-09, S-12.
 
 ## Plugin / hooks / RSI
-- [.claude-plugin/manifest.json](./.claude-plugin/manifest.json): the Claude Code plugin bundle (CLI + MCP + 5 skills + hooks + 2 agents).
+- [.claude-plugin/plugin.json](./.claude-plugin/plugin.json) and [.claude-plugin/marketplace.json](./.claude-plugin/marketplace.json): the Claude Code plugin (MCP + 5 skills + the two law gates + 2 agents). `/plugin install turbo --marketplace naman10parikh/turbo`.
+- [hooks/hooks.json](./hooks/hooks.json): the plugin's hooks (the same two gates; their log goes to a temp file).
 - [.claude/settings.json](./.claude/settings.json): hook wiring — a `tsc --noEmit` commit-gate + a `new Map()`/PATCH grep-gate (the dogfood: turbo's harness obeys turbo's law). Blocks logged to `.claude/hooks/gate.log`.
 - [workflows/rsi.workflow.js](./workflows/rsi.workflow.js): the deterministic $0 RSI loop (the 6 dsip steps). `node workflows/rsi.workflow.js --deterministic`.
 
@@ -78,8 +86,12 @@ is flagged do-NOT-wire. turbo never holds cross-request state in process (the la
 - **P-** = pitfalls (`brain/KNOWN-PITFALLS.md`, P-01…P-16) — symptom → version/condition → detection → fix. e.g. **P-02** `new Map()`/Fluid race · **P-04** Zod `.default()` PATCH data loss · **P-09** strip-types ≠ type-check.
 - **S-** = battle-tested scenarios (`brain/BATTLE-TESTED-SCENARIOS.md`, S-01…S-13) — golden eval tasks, each with a binary VERIFY. e.g. **S-01** cross-user data bleed · **S-08** SSE traps · **S-10** scaffold-from-reference.
 - **O-** = opinions (`brain/OPINIONS.md`, O-01…O-16) — ALWAYS X / NEVER Y / because Z + escape hatch. e.g. **O-01** externalize state · **O-04** no-default PATCH schema · **O-12** SSE default + 3rd-arg handler.
-- **G-** = golden tasks (`PLAN.md` §6 / `eval/`, G1–G13) — the eval pyramid, mapped to S-IDs.
+- **G-** = golden tasks (`eval/`, G1–G13) — the eval pyramid, mapped to S-IDs.
 
 ## Optional
 - [README.md](./README.md): public-facing overview.
 - [QUICKSTART.md](./QUICKSTART.md): where everything lives.
+- [gemini-extension.json](./gemini-extension.json): the Gemini CLI extension. `gemini extensions install https://github.com/naman10parikh/turbo`.
+- [.well-known/agent.json](./.well-known/agent.json): the A2A agent card.
+- [dsip.json](./dsip.json): the self-improvement contract.
+- [SECURITY.md](./SECURITY.md), [CONTRIBUTING.md](./CONTRIBUTING.md), [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md), [LICENSE](./LICENSE) (MIT).
