@@ -209,6 +209,6 @@ const server = createServer(async (req, res) => {
   res.end("not found");
 });
 
-server.listen(PORT, () => {
-  process.stdout.write(`turbo cockpit on http://localhost:${PORT}\n`);
+server.listen(PORT, "127.0.0.1", () => {
+  process.stdout.write(`turbo cockpit on http://127.0.0.1:${PORT}\n`);
 });
