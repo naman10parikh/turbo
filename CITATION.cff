@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it as below.
+title: "Turbo: Turns an OpenAPI spec into a strict TypeScript Hono service and audits it for production bugs."
+type: software
+authors:
+  - family-names: Parikh
+    given-names: Naman
+repository-code: "https://github.com/naman10parikh/turbo"
+license: MIT
+version: "0.1.0"
+abstract: "Turns an OpenAPI spec into a strict TypeScript Hono service and audits it for production bugs."
+keywords: ["agent-native", "backend", "hono", "openapi"]
