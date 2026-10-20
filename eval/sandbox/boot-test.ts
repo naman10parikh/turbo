@@ -23,7 +23,7 @@ import { fileURLToPath } from "node:url";
 // dependency + the construction surface unambiguous: turbo boots services via `Sandbox.create`, not a CLI
 // shellout. `e2b` is a hard dependency (package.json), so a static import is correct; the only thing
 // guarded is the LIVE BOOT itself, which is gated on `E2B_API_KEY` below (never faked when absent).
-import { Sandbox } from "e2b";
+import { CommandExitError, Sandbox } from "e2b";
 
 const REPO_ROOT = process.cwd();
 const PORT = 3000;
@@ -112,7 +112,9 @@ async function main(): Promise<number> {
     }
 
     // 5) Install + build (tsc → dist/*.js) — the compiled output boots on the template's Node.
-    const install = await sbx.commands.run(`cd ${base} && npm install --no-audit --no-fund`, { timeoutMs: 120_000 });
+    //    --legacy-peer-deps: the template's npm 10 crashes ("reading 'edgesOut'") while loading vitest 4.1's
+    //    optional peer set; npm 11, which the service's Node 24 ships, does not. Booting needs no peers.
+    const install = await sbx.commands.run(`cd ${base} && npm install --no-audit --no-fund --legacy-peer-deps`, { timeoutMs: 120_000 });
     if (install.exitCode !== 0) {
       console.error(`✗ npm install in sandbox failed (exit ${install.exitCode}): ${(install.stderr || "").slice(0, 300)}`);
       return 1;
@@ -182,6 +184,8 @@ async function main(): Promise<number> {
     return 0;
   } catch (e) {
     console.error(`✗ E2B boot-test error: ${e instanceof Error ? e.message : String(e)}`);
+    // e2b throws on a non-zero exit, so the exitCode checks above never see a failure: print it here.
+    if (e instanceof CommandExitError) console.error(`  exit ${e.exitCode}: ${(e.stderr || e.stdout).slice(-800)}`);
     return 1;
   } finally {
     if (sbx) {
